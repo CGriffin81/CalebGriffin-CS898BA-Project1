@@ -396,6 +396,59 @@ def format_channel_report(channel_stats: Dict[str, Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
+def count_png_images(directory: str) -> int:
+    """Count the number of PNG image files in a directory.
+
+    Inputs:
+        directory (str): Path to the directory to count.
+
+    Outputs:
+        int: Number of PNG files in the directory. Returns 0 if directory doesn't exist.
+    """
+    if not os.path.isdir(directory):
+        return 0
+    return sum(1 for f in os.listdir(directory) if f.lower().endswith(".png"))
+
+
+def clear_directory(directory: str) -> None:
+    """Delete all PNG image files from a directory.
+
+    Inputs:
+        directory (str): Path to the directory to clear.
+
+    Outputs:
+        None: Deletes all PNG files in the directory.
+    """
+    if not os.path.isdir(directory):
+        return
+    for filename in os.listdir(directory):
+        if filename.lower().endswith(".png"):
+            filepath = os.path.join(directory, filename)
+            try:
+                os.remove(filepath)
+            except OSError as e:
+                print(f"Warning: could not delete {filepath}: {e}")
+
+
+def validate_and_clear_directory(directory: str, expected_count: int) -> bool:
+    """Validate that a directory has the expected number of PNG images.
+    If not, delete all PNG images in the directory.
+
+    Inputs:
+        directory (str): Path to the directory to validate.
+        expected_count (int): Expected number of PNG files.
+
+    Outputs:
+        bool: True if the directory already has the expected count, False otherwise.
+    """
+    actual_count = count_png_images(directory)
+    if actual_count != expected_count:
+        print(f"Directory {directory} has {actual_count} images (expected {expected_count}). Clearing directory.")
+        clear_directory(directory)
+        return False
+    return True
+
+
 if __name__ == "__main__":
     DEFAULT_IMAGE_NAME = "HW1_IMG_CS898BA.png"
 
@@ -430,42 +483,59 @@ if __name__ == "__main__":
     transformation_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Image Transformations")
     os.makedirs(transformation_dir, exist_ok=True)
 
-    grayscale = to_grayscale(image)
-    binary = to_binary_otsu(grayscale)
-    hsv = to_hsv(image)
-    lab = to_lab(image)
-    hls = to_hls(image)
+    transformations_valid = validate_and_clear_directory(transformation_dir, 7)
+    if not transformations_valid:
+        grayscale = to_grayscale(image)
+        binary = to_binary_otsu(grayscale)
+        hsv = to_hsv(image)
+        lab = to_lab(image)
+        hls = to_hls(image)
 
-    save_transformation(grayscale, "HW1_IMG_CS898BA_grayscale", transformation_dir)
-    save_transformation(binary, "HW1_IMG_CS898BA_binary_otsu", transformation_dir)
-    save_transformation(hsv, "HW1_IMG_CS898BA_hsv", transformation_dir)
-    save_transformation(lab, "HW1_IMG_CS898BA_lab", transformation_dir)
-    save_transformation(hls, "HW1_IMG_CS898BA_hls", transformation_dir)
+        save_transformation(grayscale, "HW1_IMG_CS898BA_grayscale", transformation_dir)
+        save_transformation(binary, "HW1_IMG_CS898BA_binary_otsu", transformation_dir)
+        save_transformation(hsv, "HW1_IMG_CS898BA_hsv", transformation_dir)
+        save_transformation(lab, "HW1_IMG_CS898BA_lab", transformation_dir)
+        save_transformation(hls, "HW1_IMG_CS898BA_hls", transformation_dir)
 
-    hsv_equalized = equalize_hsv_value(hsv)
-    bgr_equalized = cv2.cvtColor(hsv_equalized, cv2.COLOR_HSV2BGR)
+        hsv_equalized = equalize_hsv_value(hsv)
+        bgr_equalized = cv2.cvtColor(hsv_equalized, cv2.COLOR_HSV2BGR)
 
-    save_transformation(hsv_equalized, "HW1_IMG_CS898BA_hsv_equalized", transformation_dir)
-    save_transformation(bgr_equalized, "HW1_IMG_CS898BA_hsv_equalized_bgr", transformation_dir)
+        save_transformation(hsv_equalized, "HW1_IMG_CS898BA_hsv_equalized", transformation_dir)
+        save_transformation(bgr_equalized, "HW1_IMG_CS898BA_hsv_equalized_bgr", transformation_dir)
+    else:
+        print(f"Image Transformations already has the expected 7 files; skipping transformation regeneration.")
 
     print(f"Saved transformed images to: {transformation_dir}")
 
     affine_dir = os.path.join(transformation_dir, "Affine Transformations")
-    source_images = [
-        f for f in os.listdir(transformation_dir)
-        if f.lower().endswith(".png") and "_affine_" not in f
-    ]
-    for source_image in source_images:
-        source_path = os.path.join(transformation_dir, source_image)
-        image = cv2.imread(source_path)
-        if image is None:
-            continue
-        base_name, _ = os.path.splitext(source_image)
-        apply_affine_transformations(image, base_name, affine_dir)
+    os.makedirs(affine_dir, exist_ok=True)
+    affine_valid = validate_and_clear_directory(affine_dir, 14)
+
+    if not affine_valid:
+        source_images = [
+            f for f in os.listdir(transformation_dir)
+            if f.lower().endswith(".png") and "_affine_" not in f
+        ]
+        for source_image in source_images:
+            source_path = os.path.join(transformation_dir, source_image)
+            image = cv2.imread(source_path)
+            if image is None:
+                continue
+            base_name, _ = os.path.splitext(source_image)
+            apply_affine_transformations(image, base_name, affine_dir)
+    else:
+        print(f"Affine Transformations already has the expected 14 files; skipping affine generation.")
 
     print(f"Saved affine images to: {affine_dir}")
 
     gaussian_dir = os.path.join(transformation_dir, "Gaussian Blur")
-    sigma_values = (0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5)
-    blur_images_in_directories(transformation_dir, affine_dir, gaussian_dir, sigma_values)
+    os.makedirs(gaussian_dir, exist_ok=True)
+    gaussian_valid = validate_and_clear_directory(gaussian_dir, 147)
+
+    if not gaussian_valid:
+        sigma_values = (0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5)
+        blur_images_in_directories(transformation_dir, affine_dir, gaussian_dir, sigma_values)
+    else:
+        print(f"Gaussian Blur already has the expected 147 files; skipping blur generation.")
+
     print(f"Saved Gaussian blurred images to: {gaussian_dir}")
