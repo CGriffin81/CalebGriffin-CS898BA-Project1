@@ -1,10 +1,10 @@
-import cv2
-import numpy as np
-import argparse
-from collections import Counter
-from typing import Any, Dict, Tuple
 import argparse
 import os
+from collections import Counter
+from typing import Any, Dict, Tuple
+
+import cv2
+import numpy as np
 
 try:
     from scipy import stats  # type: ignore
@@ -40,6 +40,69 @@ def split_channels(image: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarra
     if image.ndim != 3 or image.shape[2] != 3:
         raise ValueError("Expected a color image with 3 channels.")
     return cv2.split(image)
+
+
+def to_grayscale(image: np.ndarray) -> np.ndarray:
+    """Convert a BGR image to grayscale.
+
+    Inputs:
+        image (np.ndarray): Input BGR image.
+
+    Outputs:
+        np.ndarray: Grayscale image.
+    """
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+
+def to_binary_otsu(gray_image: np.ndarray) -> np.ndarray:
+    """Convert a grayscale image to binary using Otsu's thresholding.
+
+    Inputs:
+        gray_image (np.ndarray): Input grayscale image.
+
+    Outputs:
+        np.ndarray: Binary image with values 0 or 255.
+    """
+    if gray_image.ndim != 2:
+        raise ValueError("Expected a grayscale image for Otsu thresholding.")
+    _, binary = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    return binary
+
+
+def to_hsv(image: np.ndarray) -> np.ndarray:
+    """Convert a BGR image to the HSV color space.
+
+    Inputs:
+        image (np.ndarray): Input BGR image.
+
+    Outputs:
+        np.ndarray: Image in HSV color space.
+    """
+    return cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+
+def to_lab(image: np.ndarray) -> np.ndarray:
+    """Convert a BGR image to the LAB color space.
+
+    Inputs:
+        image (np.ndarray): Input BGR image.
+
+    Outputs:
+        np.ndarray: Image in LAB color space.
+    """
+    return cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+
+
+def to_hls(image: np.ndarray) -> np.ndarray:
+    """Convert a BGR image to the HLS color space.
+
+    Inputs:
+        image (np.ndarray): Input BGR image.
+
+    Outputs:
+        np.ndarray: Image in HLS color space.
+    """
+    return cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
 
 
 def compute_mode(channel: np.ndarray) -> Tuple[int, int]:
@@ -178,3 +241,21 @@ if __name__ == "__main__":
 
     stats = analyze_image_channels(image_path)
     print(format_channel_report(stats))
+
+    image = load_image(image_path)
+    transformation_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Image Transformations")
+    os.makedirs(transformation_dir, exist_ok=True)
+
+    grayscale = to_grayscale(image)
+    binary = to_binary_otsu(grayscale)
+    hsv = to_hsv(image)
+    lab = to_lab(image)
+    hls = to_hls(image)
+
+    cv2.imwrite(os.path.join(transformation_dir, "HW1_IMG_CS898BA_grayscale.png"), grayscale)
+    cv2.imwrite(os.path.join(transformation_dir, "HW1_IMG_CS898BA_binary_otsu.png"), binary)
+    cv2.imwrite(os.path.join(transformation_dir, "HW1_IMG_CS898BA_hsv.png"), hsv)
+    cv2.imwrite(os.path.join(transformation_dir, "HW1_IMG_CS898BA_lab.png"), lab)
+    cv2.imwrite(os.path.join(transformation_dir, "HW1_IMG_CS898BA_hls.png"), hls)
+
+    print(f"Saved transformed images to: {transformation_dir}")

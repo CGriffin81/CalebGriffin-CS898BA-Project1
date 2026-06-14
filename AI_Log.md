@@ -225,10 +225,11 @@ What functions can I use to convert the original image into greyscale, binary, a
 
 ### Result Synopsis
 - Listed OpenCV functions and common usage patterns for converting images to grayscale, producing binary masks (global, adaptive, and Otsu thresholding), and converting between BGR and other color spaces (HSV, LAB, YCrCb, HLS, RGB, YUV, XYZ).
-- Recommended follow-up: pick which color spaces and thresholding strategies you want implemented; I can add helper functions to `imageanalysis.py` and update `README.md`.
+- Implemented helper functions in `imageanalysis.py` for grayscale conversion, Otsu thresholding, and BGR conversions to HSV, LAB, and HLS.
 
 ### Design/Code Changes
-- None. Provided guidance only.
+- Added helper functions to `imageanalysis.py`: `to_grayscale`, `to_binary_otsu`, `to_hsv`, `to_lab`, and `to_hls`.
+- Added script logic to create an `Image Transformations` directory and save transformed images there with descriptive filenames.
 
 ---
 

@@ -33,6 +33,11 @@ pip install scipy
   - `compute_channel_stats(channel, channel_name)` — min/max/mean/median/range/variance/std/mode/skew
   - `compute_mode(channel)` — mode calculation (SciPy or histogram fallback)
   - `compute_skew(channel)` — skewness (SciPy or manual calculation)
+  - `to_grayscale(image)` — convert BGR to grayscale
+  - `to_binary_otsu(gray_image)` — convert a grayscale image to binary using Otsu's method
+  - `to_hsv(image)` — convert BGR to HSV
+  - `to_lab(image)` — convert BGR to LAB
+  - `to_hls(image)` — convert BGR to HLS
   - `analyze_image_channels(image_path)` — orchestrator returning a dict of per-channel stats
   - `format_channel_report(channel_stats)` — returns a formatted text report
   - CLI entry point: accepts `--image_path / -i` or will auto-locate `HW1_IMG_CS898BA.png` (script dir, then cwd)
