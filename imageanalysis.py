@@ -29,16 +29,16 @@ def load_image(image_path: str) -> np.ndarray:
 
 
 def split_channels(image: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Split a color image into its BGR channels.
+    """Split a 3-channel image into separate channels.
 
     Inputs:
-        image (np.ndarray): Input BGR image.
+        image (np.ndarray): Input image with three channels.
 
     Outputs:
-        Tuple[np.ndarray, np.ndarray, np.ndarray]: Blue, green, and red channels.
+        Tuple[np.ndarray, np.ndarray, np.ndarray]: The three image channels.
     """
     if image.ndim != 3 or image.shape[2] != 3:
-        raise ValueError("Expected a color image with 3 channels.")
+        raise ValueError("Expected a 3-channel image.")
     return cv2.split(image)
 
 
@@ -103,6 +103,39 @@ def to_hls(image: np.ndarray) -> np.ndarray:
         np.ndarray: Image in HLS color space.
     """
     return cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
+
+
+def equalize_hsv_value(hsv_image: np.ndarray) -> np.ndarray:
+    """Equalize the V channel of an HSV image and return the adjusted HSV image.
+
+    Inputs:
+        hsv_image (np.ndarray): Input HSV image.
+
+    Outputs:
+        np.ndarray: HSV image with equalized V channel.
+    """
+    if hsv_image.ndim != 3 or hsv_image.shape[2] != 3:
+        raise ValueError("Expected an HSV image with 3 channels.")
+    h, s, v = split_channels(hsv_image)
+    v_eq = cv2.equalizeHist(v)
+    return cv2.merge([h, s, v_eq])
+
+
+def save_transformation(image: np.ndarray, filename_template: str, transformation_dir: str) -> str:
+    """Save a transformed image using a consistent filename template.
+
+    Inputs:
+        image (np.ndarray): Image to save.
+        filename_template (str): Template for the output filename, without extension.
+        transformation_dir (str): Directory where the image will be saved.
+
+    Outputs:
+        str: The saved image path.
+    """
+    os.makedirs(transformation_dir, exist_ok=True)
+    output_path = os.path.join(transformation_dir, f"{filename_template}.png")
+    cv2.imwrite(output_path, image)
+    return output_path
 
 
 def compute_mode(channel: np.ndarray) -> Tuple[int, int]:
@@ -252,10 +285,16 @@ if __name__ == "__main__":
     lab = to_lab(image)
     hls = to_hls(image)
 
-    cv2.imwrite(os.path.join(transformation_dir, "HW1_IMG_CS898BA_grayscale.png"), grayscale)
-    cv2.imwrite(os.path.join(transformation_dir, "HW1_IMG_CS898BA_binary_otsu.png"), binary)
-    cv2.imwrite(os.path.join(transformation_dir, "HW1_IMG_CS898BA_hsv.png"), hsv)
-    cv2.imwrite(os.path.join(transformation_dir, "HW1_IMG_CS898BA_lab.png"), lab)
-    cv2.imwrite(os.path.join(transformation_dir, "HW1_IMG_CS898BA_hls.png"), hls)
+    save_transformation(grayscale, "HW1_IMG_CS898BA_grayscale", transformation_dir)
+    save_transformation(binary, "HW1_IMG_CS898BA_binary_otsu", transformation_dir)
+    save_transformation(hsv, "HW1_IMG_CS898BA_hsv", transformation_dir)
+    save_transformation(lab, "HW1_IMG_CS898BA_lab", transformation_dir)
+    save_transformation(hls, "HW1_IMG_CS898BA_hls", transformation_dir)
+
+    hsv_equalized = equalize_hsv_value(hsv)
+    bgr_equalized = cv2.cvtColor(hsv_equalized, cv2.COLOR_HSV2BGR)
+
+    save_transformation(hsv_equalized, "HW1_IMG_CS898BA_hsv_equalized", transformation_dir)
+    save_transformation(bgr_equalized, "HW1_IMG_CS898BA_hsv_equalized_bgr", transformation_dir)
 
     print(f"Saved transformed images to: {transformation_dir}")

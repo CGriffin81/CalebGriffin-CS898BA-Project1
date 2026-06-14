@@ -38,6 +38,8 @@ pip install scipy
   - `to_hsv(image)` — convert BGR to HSV
   - `to_lab(image)` — convert BGR to LAB
   - `to_hls(image)` — convert BGR to HLS
+  - `equalize_hsv_value(hsv_image)` — equalize the V channel of an HSV image
+  - `save_transformation(image, filename_template, transformation_dir)` — save transformed images using a consistent naming template
   - `analyze_image_channels(image_path)` — orchestrator returning a dict of per-channel stats
   - `format_channel_report(channel_stats)` — returns a formatted text report
   - CLI entry point: accepts `--image_path / -i` or will auto-locate `HW1_IMG_CS898BA.png` (script dir, then cwd)

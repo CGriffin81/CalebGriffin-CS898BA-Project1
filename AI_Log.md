@@ -230,6 +230,7 @@ What functions can I use to convert the original image into greyscale, binary, a
 ### Design/Code Changes
 - Added helper functions to `imageanalysis.py`: `to_grayscale`, `to_binary_otsu`, `to_hsv`, `to_lab`, and `to_hls`.
 - Added script logic to create an `Image Transformations` directory and save transformed images there with descriptive filenames.
+- Added `save_transformation()` helper to centralize image saving and enforce a consistent filename template.
 
 ---
 
