@@ -212,6 +212,29 @@ Run imageanalysis.py to include the relevant output in the Readme.
 
 ---
 
+## Entry 12: Strengthen affine transform uniqueness validation
+
+**Date & Time:** June 13, 2026 | 4:30 PM
+**AI Tool:** GitHub Copilot (Raptor mini Preview)
+**Prompt Type:** Code update and validation
+
+### Full Prompt
+```
+Append the exact log entry and finish the readme wording.
+```
+
+### Result Synopsis
+- Added pixel-wise affine output uniqueness validation to `imageanalysis.py`.
+- Updated `apply_affine_transformations()` to retry generated transforms when an affine result duplicates an earlier output.
+- Ensures the two affine output images are different both by transform type and by resulting pixel data.
+
+### Design/Code Changes
+- Added helper function `images_are_equal(image_a, image_b)` for exact image comparison.
+- Updated affine transformation logic to compare and reject duplicate outputs, with up to 10 retry attempts per transform.
+- Updated `README.md` to state that affine outputs are unique and that collisions are retried.
+
+---
+
 ## Entry 11: Request for grayscale/binary/color-space conversion functions
 
 **Date & Time:** June 13, 2026 | 4:20 PM
@@ -231,6 +254,8 @@ What functions can I use to convert the original image into greyscale, binary, a
 - Added helper functions to `imageanalysis.py`: `to_grayscale`, `to_binary_otsu`, `to_hsv`, `to_lab`, and `to_hls`.
 - Added script logic to create an `Image Transformations` directory and save transformed images there with descriptive filenames.
 - Added `save_transformation()` helper to centralize image saving and enforce a consistent filename template.
+- Added affine transformation helpers and logic to process existing images in `Image Transformations`, saving outputs in `Image Transformations/Affine Transformations`.
+- Added explicit uniqueness verification that each image receives two different affine transform types.
 
 ---
 

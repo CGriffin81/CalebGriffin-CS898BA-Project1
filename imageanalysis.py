@@ -1,5 +1,6 @@
 import argparse
 import os
+import random
 from collections import Counter
 from typing import Any, Dict, Tuple
 
@@ -136,6 +137,112 @@ def save_transformation(image: np.ndarray, filename_template: str, transformatio
     output_path = os.path.join(transformation_dir, f"{filename_template}.png")
     cv2.imwrite(output_path, image)
     return output_path
+
+
+def generate_random_affine_matrix(transform_type: str, image_shape: Tuple[int, int]) -> np.ndarray:
+    """Generate a random affine transformation matrix for a specific type.
+
+    Inputs:
+        transform_type (str): One of ['rotation', 'translation', 'scale', 'shear'].
+        image_shape (Tuple[int, int]): The image height and width.
+
+    Outputs:
+        np.ndarray: 2x3 affine transformation matrix.
+    """
+    height, width = image_shape
+    center = (width / 2.0, height / 2.0)
+
+    if transform_type == "rotation":
+        angle = 0.0
+        while abs(angle) < 2.0:
+            angle = random.uniform(-30.0, 30.0)
+        return cv2.getRotationMatrix2D(center, angle, 1.0)
+
+    if transform_type == "translation":
+        tx = 0.0
+        ty = 0.0
+        while abs(tx) < 0.05 * width and abs(ty) < 0.05 * height:
+            tx = random.uniform(-0.15, 0.15) * width
+            ty = random.uniform(-0.15, 0.15) * height
+        return np.array([[1.0, 0.0, tx], [0.0, 1.0, ty]], dtype=np.float32)
+
+    if transform_type == "scale":
+        sx = 1.0
+        sy = 1.0
+        while abs(sx - 1.0) < 0.05 or abs(sy - 1.0) < 0.05:
+            sx = random.uniform(0.8, 1.2)
+            sy = random.uniform(0.8, 1.2)
+        tx = (1 - sx) * width / 2.0
+        ty = (1 - sy) * height / 2.0
+        return np.array([[sx, 0.0, tx], [0.0, sy, ty]], dtype=np.float32)
+
+    if transform_type == "shear":
+        shear = 0.0
+        while abs(shear) < 0.05:
+            shear = random.uniform(-0.25, 0.25)
+        return np.array([[1.0, shear, 0.0], [0.0, 1.0, 0.0]], dtype=np.float32)
+
+    raise ValueError(f"Unsupported affine transform type: {transform_type}")
+
+
+def apply_affine_transform(image: np.ndarray, matrix: np.ndarray) -> np.ndarray:
+    """Apply an affine transformation matrix to an image.
+
+    Inputs:
+        image (np.ndarray): Input image.
+        matrix (np.ndarray): 2x3 affine transform matrix.
+
+    Outputs:
+        np.ndarray: Transformed image.
+    """
+    height, width = image.shape[:2]
+    return cv2.warpAffine(image, matrix, (width, height), borderMode=cv2.BORDER_REFLECT)
+
+
+def images_are_equal(image_a: np.ndarray, image_b: np.ndarray) -> bool:
+    """Return True if two images are pixel-identical.
+
+    Inputs:
+        image_a (np.ndarray): First image.
+        image_b (np.ndarray): Second image.
+
+    Outputs:
+        bool: True if the images match exactly.
+    """
+    return image_a.shape == image_b.shape and np.array_equal(image_a, image_b)
+
+
+def apply_affine_transformations(image: np.ndarray, base_filename: str, output_dir: str) -> None:
+    """Apply two distinct random affine transformations and save the results.
+
+    Inputs:
+        image (np.ndarray): Input image.
+        base_filename (str): Base filename without extension.
+        output_dir (str): Directory where affine images will be saved.
+
+    Outputs:
+        None: Saves two uniquely-typed affine images to disk.
+    """
+    transform_types = ["rotation", "translation", "scale", "shear"]
+    chosen_types = random.sample(transform_types, 2)
+    assert len(chosen_types) == 2 and chosen_types[0] != chosen_types[1], \
+        "Affine transform types must be unique for each image."
+
+    transformed_images = []
+    for transform_type in chosen_types:
+        transformed = None
+        for attempt in range(10):
+            matrix = generate_random_affine_matrix(transform_type, image.shape[:2])
+            candidate = apply_affine_transform(image, matrix)
+            if not any(images_are_equal(candidate, existing) for existing in transformed_images):
+                transformed = candidate
+                break
+        if transformed is None:
+            raise RuntimeError(
+                f"Unable to generate a unique affine output for transform type '{transform_type}' after 10 attempts."
+            )
+        save_transformation(transformed, f"{base_filename}_affine_{transform_type}", output_dir)
+        transformed_images.append(transformed)
 
 
 def compute_mode(channel: np.ndarray) -> Tuple[int, int]:
@@ -298,3 +405,18 @@ if __name__ == "__main__":
     save_transformation(bgr_equalized, "HW1_IMG_CS898BA_hsv_equalized_bgr", transformation_dir)
 
     print(f"Saved transformed images to: {transformation_dir}")
+
+    affine_dir = os.path.join(transformation_dir, "Affine Transformations")
+    source_images = [
+        f for f in os.listdir(transformation_dir)
+        if f.lower().endswith(".png") and "_affine_" not in f
+    ]
+    for source_image in source_images:
+        source_path = os.path.join(transformation_dir, source_image)
+        image = cv2.imread(source_path)
+        if image is None:
+            continue
+        base_name, _ = os.path.splitext(source_image)
+        apply_affine_transformations(image, base_name, affine_dir)
+
+    print(f"Saved affine images to: {affine_dir}")

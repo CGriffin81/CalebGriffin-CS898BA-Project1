@@ -39,10 +39,17 @@ pip install scipy
   - `to_lab(image)` — convert BGR to LAB
   - `to_hls(image)` — convert BGR to HLS
   - `equalize_hsv_value(hsv_image)` — equalize the V channel of an HSV image
+  - `apply_affine_transformations(image, base_filename, output_dir)` — apply two distinct affine transforms and save into the Affine Transformations subdirectory
+  - `generate_random_affine_matrix(transform_type, image_shape)` — build a random affine matrix for a chosen type
+  - `apply_affine_transform(image, matrix)` — apply an affine matrix with `cv2.warpAffine`
+  - `apply_affine_transformations(image, base_filename, output_dir)` — apply two distinct affine transforms (always different types) and save the results; retries on collisions and validates that no two affine output images are identical
   - `save_transformation(image, filename_template, transformation_dir)` — save transformed images using a consistent naming template
   - `analyze_image_channels(image_path)` — orchestrator returning a dict of per-channel stats
   - `format_channel_report(channel_stats)` — returns a formatted text report
   - CLI entry point: accepts `--image_path / -i` or will auto-locate `HW1_IMG_CS898BA.png` (script dir, then cwd)
+  - Output directories created:
+    - `Image Transformations`
+    - `Image Transformations/Affine Transformations`
 
 - [AI_Log.md](AI_Log.md) — project interaction log (prompts, responses, and design/code changes).
 
