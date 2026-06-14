@@ -220,7 +220,7 @@ def images_are_equal(image_a: np.ndarray, image_b: np.ndarray) -> bool:
 
 
 def apply_affine_transformations(image: np.ndarray, base_filename: str, output_dir: str) -> None:
-    """Apply two distinct random affine transformations and save the results.
+    """Apply two distinct random Affine_Transformations and save the results.
 
     Inputs:
         image (np.ndarray): Input image.
@@ -284,8 +284,8 @@ def blur_images_in_directories(transformation_dir: str, affine_dir: str, output_
     """Apply Gaussian blur to every image in the transformation directories.
 
     Inputs:
-        transformation_dir (str): Root Image Transformations directory.
-        affine_dir (str): Affine Transformations subdirectory.
+        transformation_dir (str): Root Image_Transformations directory.
+        affine_dir (str): Affine_Transformations subdirectory.
         output_dir (str): Directory where blurred images will be saved.
         sigma_values (Tuple[float, ...]): Sigma values to use for blur.
 
@@ -807,7 +807,7 @@ if __name__ == "__main__":
     print(format_channel_report(stats))
 
     image = load_image(image_path)
-    transformation_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Image Transformations")
+    transformation_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Image_Transformations")
     os.makedirs(transformation_dir, exist_ok=True)
 
     transformations_valid = validate_and_clear_directory(transformation_dir, 7)
@@ -830,11 +830,11 @@ if __name__ == "__main__":
         save_transformation(hsv_equalized, "HW1_IMG_CS898BA_hsv_equalized", transformation_dir)
         save_transformation(bgr_equalized, "HW1_IMG_CS898BA_hsv_equalized_bgr", transformation_dir)
     else:
-        print(f"Image Transformations already has the expected 7 files; skipping transformation regeneration.")
+        print(f"Image_Transformations already has the expected 7 files; skipping transformation regeneration.")
 
     print(f"Saved transformed images to: {transformation_dir}")
 
-    affine_dir = os.path.join(transformation_dir, "Affine Transformations")
+    affine_dir = os.path.join(transformation_dir, "Affine_Transformations")
     os.makedirs(affine_dir, exist_ok=True)
     affine_valid = validate_and_clear_directory(affine_dir, 14)
 
@@ -851,11 +851,11 @@ if __name__ == "__main__":
             base_name, _ = os.path.splitext(source_image)
             apply_affine_transformations(image, base_name, affine_dir)
     else:
-        print(f"Affine Transformations already has the expected 14 files; skipping affine generation.")
+        print(f"Affine_Transformations already has the expected 14 files; skipping affine generation.")
 
     print(f"Saved affine images to: {affine_dir}")
 
-    gaussian_dir = os.path.join(transformation_dir, "Gaussian Blur")
+    gaussian_dir = os.path.join(transformation_dir, "Gaussian_Blur")
     os.makedirs(gaussian_dir, exist_ok=True)
     gaussian_valid = validate_and_clear_directory(gaussian_dir, 147)
 
@@ -867,7 +867,7 @@ if __name__ == "__main__":
 
     print(f"Saved Gaussian blurred images to: {gaussian_dir}")
 
-    subset_names = ("Subset 1", "Subset 2", "Subset 3", "Subset 4")
+    subset_names = ("Subset_1", "Subset_2", "Subset_3", "Subset_4")
     create_random_subsets(transformation_dir, subset_names, 168)
     verify_subset_counts(transformation_dir, subset_names, 42)
 

@@ -130,13 +130,13 @@ Red channel:
   skew: 2.105449369974975
 ```
 
-**Plot selection examples**
-![Description](Image Transformations/Plots/HW1_IMG_CS898BA_grayscale_affine_scale_sx_0.84_sy_0.89_gaussian_sigma_1.0_edge_comparison.png)
-![Description](Image Transformations/Plots/HW1_IMG_CS898BA_lab_affine_scale_sx_0.80_sy_1.07_gaussian_sigma_1.0_edge_comparison.png)
-![Description](Image Transformations/Plots/HW1_IMG_CS898BA_hsv_equalized_bgr_affine_scale_sx_1.05_sy_1.12_gaussian_sigma_3.5_edge_comparison.png)
-![Description](Image Transformations/Plots/HW1_IMG_CS898BA_grayscale_gaussian_sigma_2.5_edge_comparison.png)
-![Description](Image Transformations/Plots/HW1_IMG_CS898BA_hsv_affine_translation_tx_-143.0_ty_-225.3_gaussian_sigma_1.5_edge_comparison.png)
-![Description](Image Transformations/Plots/HW1_IMG_CS898BA_grayscale_affine_scale_sx_0.84_sy_0.89_edge_comparison.png)
+**Plot selection examples**  
+![Description](Image_Transformations/Plots/HW1_IMG_CS898BA_grayscale_affine_scale_sx_0.84_sy_0.89_gaussian_sigma_1.0_edge_comparison.png)  
+![Description](Image_Transformations/Plots/HW1_IMG_CS898BA_lab_affine_scale_sx_0.80_sy_1.07_gaussian_sigma_1.0_edge_comparison.png)  
+![Description](Image_Transformations/Plots/HW1_IMG_CS898BA_hsv_equalized_bgr_affine_scale_sx_1.05_sy_1.12_gaussian_sigma_3.5_edge_comparison.png)  
+![Description](Image Transformations/Plots/HW1_IMG_CS898BA_grayscale_gaussian_sigma_2.5_edge_comparison.png)  
+![Description](Image_Transformations/Plots/HW1_IMG_CS898BA_hsv_affine_translation_tx_-143.0_ty_-225.3_gaussian_sigma_1.5_edge_comparison.png)  
+![Description](Image_Transformations/Plots/HW1_IMG_CS898BA_grayscale_affine_scale_sx_0.84_sy_0.89_edge_comparison.png)  
 
 
 **Docstring recommendations**
