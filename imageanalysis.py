@@ -245,6 +245,50 @@ def apply_affine_transformations(image: np.ndarray, base_filename: str, output_d
         transformed_images.append(transformed)
 
 
+def apply_gaussian_blur(image: np.ndarray, sigma: float) -> np.ndarray:
+    """Apply Gaussian blur to an image using the given sigma.
+
+    Inputs:
+        image (np.ndarray): Input image.
+        sigma (float): Standard deviation for the Gaussian kernel.
+
+    Outputs:
+        np.ndarray: Blurred image.
+    """
+    kernel_radius = max(1, int(round(sigma * 3)))
+    kernel_size = kernel_radius * 2 + 1
+    return cv2.GaussianBlur(image, (kernel_size, kernel_size), sigmaX=sigma, sigmaY=sigma, borderType=cv2.BORDER_REFLECT)
+
+
+def blur_images_in_directories(transformation_dir: str, affine_dir: str, output_dir: str, sigma_values: Tuple[float, ...]) -> None:
+    """Apply Gaussian blur to every image in the transformation directories.
+
+    Inputs:
+        transformation_dir (str): Root Image Transformations directory.
+        affine_dir (str): Affine Transformations subdirectory.
+        output_dir (str): Directory where blurred images will be saved.
+        sigma_values (Tuple[float, ...]): Sigma values to use for blur.
+
+    Outputs:
+        None: Saves blurred images to disk.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    image_paths = []
+    for dir_path in (transformation_dir, affine_dir):
+        if not os.path.isdir(dir_path):
+            continue
+        for filename in os.listdir(dir_path):
+            if filename.lower().endswith(".png"):
+                image_paths.append(os.path.join(dir_path, filename))
+
+    for image_path in image_paths:
+        image = load_image(image_path)
+        base_name = os.path.splitext(os.path.basename(image_path))[0]
+        for sigma in sigma_values:
+            blurred = apply_gaussian_blur(image, sigma)
+            save_transformation(blurred, f"{base_name}_gaussian_sigma_{sigma:.1f}", output_dir)
+
+
 def compute_mode(channel: np.ndarray) -> Tuple[int, int]:
     """Compute the mode value and count for a channel.
 
@@ -420,3 +464,8 @@ if __name__ == "__main__":
         apply_affine_transformations(image, base_name, affine_dir)
 
     print(f"Saved affine images to: {affine_dir}")
+
+    gaussian_dir = os.path.join(transformation_dir, "Gaussian Blur")
+    sigma_values = (0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5)
+    blur_images_in_directories(transformation_dir, affine_dir, gaussian_dir, sigma_values)
+    print(f"Saved Gaussian blurred images to: {gaussian_dir}")

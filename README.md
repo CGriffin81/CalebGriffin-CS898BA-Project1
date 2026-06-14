@@ -43,6 +43,8 @@ pip install scipy
   - `generate_random_affine_matrix(transform_type, image_shape)` — build a random affine matrix for a chosen type
   - `apply_affine_transform(image, matrix)` — apply an affine matrix with `cv2.warpAffine`
   - `apply_affine_transformations(image, base_filename, output_dir)` — apply two distinct affine transforms (always different types) and save the results; retries on collisions and validates that no two affine output images are identical
+  - `apply_gaussian_blur(image, sigma)` — apply Gaussian blur to an image using a sigma value
+  - `blur_images_in_directories(transformation_dir, affine_dir, output_dir, sigma_values)` — blur every image in `Image Transformations` and `Affine Transformations`, saving results into `Image Transformations/Gaussian Blur`
   - `save_transformation(image, filename_template, transformation_dir)` — save transformed images using a consistent naming template
   - `analyze_image_channels(image_path)` — orchestrator returning a dict of per-channel stats
   - `format_channel_report(channel_stats)` — returns a formatted text report
@@ -50,6 +52,7 @@ pip install scipy
   - Output directories created:
     - `Image Transformations`
     - `Image Transformations/Affine Transformations`
+    - `Image Transformations/Gaussian Blur`
 
 - [AI_Log.md](AI_Log.md) — project interaction log (prompts, responses, and design/code changes).
 
@@ -71,6 +74,10 @@ python imageanalysis.py -i path/to/image.png
 
 **Output**
 - The script prints a multi-line channel statistics report to stdout. The report contains per-channel keys such as `min`, `max`, `mean`, `median`, `range`, `variance`, `std`, `mode`, `mode_count`, and `skew`.
+- Transformed images are saved to `Image Transformations` with descriptive filenames (e.g., `HW1_IMG_CS898BA_grayscale.png`, `HW1_IMG_CS898BA_hsv.png`).
+- Affine-transformed images are saved to `Image Transformations/Affine Transformations` with naming: `{source_name}_affine_{transform_type}.png` (e.g., `HW1_IMG_CS898BA_grayscale_affine_rotation.png`).
+- Gaussian-blurred images are saved to `Image Transformations/Gaussian Blur` with naming: `{source_name}_gaussian_sigma_{sigma}.png` where sigma ranges from 0.5 to 3.5 in 0.5 increments (e.g., `HW1_IMG_CS898BA_gaussian_sigma_1.5.png`). Every image from both the `Image Transformations` and `Affine Transformations` directories is blurred at each sigma value.
+    - The differences in sigma values cause the image's pixels to be progressively more blurry. Higher sigma value relates to a further blur distance from each pixel, which causes the image to become more smooth, but to lose detail.
 
 **Results**
 The following output was produced by running `imageanalysis.py` with the default image `HW1_IMG_CS898BA.png`:
