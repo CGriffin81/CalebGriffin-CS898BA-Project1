@@ -1,11 +1,14 @@
 import argparse
 import os
 import random
+import shutil
 from collections import Counter
 from typing import Any, Dict, Tuple
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
 try:
     from scipy import stats  # type: ignore
@@ -139,15 +142,15 @@ def save_transformation(image: np.ndarray, filename_template: str, transformatio
     return output_path
 
 
-def generate_random_affine_matrix(transform_type: str, image_shape: Tuple[int, int]) -> np.ndarray:
-    """Generate a random affine transformation matrix for a specific type.
+def generate_random_affine_matrix(transform_type: str, image_shape: Tuple[int, int]) -> Tuple[np.ndarray, Dict[str, Any]]:
+    """Generate a random affine transformation matrix and metadata for a specific type.
 
     Inputs:
         transform_type (str): One of ['rotation', 'translation', 'scale', 'shear'].
         image_shape (Tuple[int, int]): The image height and width.
 
     Outputs:
-        np.ndarray: 2x3 affine transformation matrix.
+        Tuple[np.ndarray, Dict[str, Any]]: 2x3 affine transformation matrix and metadata.
     """
     height, width = image_shape
     center = (width / 2.0, height / 2.0)
@@ -156,7 +159,8 @@ def generate_random_affine_matrix(transform_type: str, image_shape: Tuple[int, i
         angle = 0.0
         while abs(angle) < 2.0:
             angle = random.uniform(-30.0, 30.0)
-        return cv2.getRotationMatrix2D(center, angle, 1.0)
+        matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+        return matrix, {"type": "rotation", "angle": float(angle)}
 
     if transform_type == "translation":
         tx = 0.0
@@ -164,7 +168,8 @@ def generate_random_affine_matrix(transform_type: str, image_shape: Tuple[int, i
         while abs(tx) < 0.05 * width and abs(ty) < 0.05 * height:
             tx = random.uniform(-0.15, 0.15) * width
             ty = random.uniform(-0.15, 0.15) * height
-        return np.array([[1.0, 0.0, tx], [0.0, 1.0, ty]], dtype=np.float32)
+        matrix = np.array([[1.0, 0.0, tx], [0.0, 1.0, ty]], dtype=np.float32)
+        return matrix, {"type": "translation", "tx": float(tx), "ty": float(ty)}
 
     if transform_type == "scale":
         sx = 1.0
@@ -174,13 +179,15 @@ def generate_random_affine_matrix(transform_type: str, image_shape: Tuple[int, i
             sy = random.uniform(0.8, 1.2)
         tx = (1 - sx) * width / 2.0
         ty = (1 - sy) * height / 2.0
-        return np.array([[sx, 0.0, tx], [0.0, sy, ty]], dtype=np.float32)
+        matrix = np.array([[sx, 0.0, tx], [0.0, sy, ty]], dtype=np.float32)
+        return matrix, {"type": "scale", "sx": float(sx), "sy": float(sy)}
 
     if transform_type == "shear":
         shear = 0.0
         while abs(shear) < 0.05:
             shear = random.uniform(-0.25, 0.25)
-        return np.array([[1.0, shear, 0.0], [0.0, 1.0, 0.0]], dtype=np.float32)
+        matrix = np.array([[1.0, shear, 0.0], [0.0, 1.0, 0.0]], dtype=np.float32)
+        return matrix, {"type": "shear", "shear": float(shear)}
 
     raise ValueError(f"Unsupported affine transform type: {transform_type}")
 
@@ -231,17 +238,30 @@ def apply_affine_transformations(image: np.ndarray, base_filename: str, output_d
     transformed_images = []
     for transform_type in chosen_types:
         transformed = None
+        transform_metadata: Dict[str, Any] = {"type": transform_type}
         for attempt in range(10):
-            matrix = generate_random_affine_matrix(transform_type, image.shape[:2])
+            matrix, metadata = generate_random_affine_matrix(transform_type, image.shape[:2])
             candidate = apply_affine_transform(image, matrix)
             if not any(images_are_equal(candidate, existing) for existing in transformed_images):
                 transformed = candidate
+                transform_metadata = metadata
                 break
         if transformed is None:
             raise RuntimeError(
                 f"Unable to generate a unique affine output for transform type '{transform_type}' after 10 attempts."
             )
-        save_transformation(transformed, f"{base_filename}_affine_{transform_type}", output_dir)
+
+        filename = f"{base_filename}_affine_{transform_type}"
+        if transform_type == "rotation":
+            filename += f"_angle_{transform_metadata['angle']:.1f}"
+        elif transform_type == "translation":
+            filename += f"_tx_{transform_metadata['tx']:.1f}_ty_{transform_metadata['ty']:.1f}"
+        elif transform_type == "scale":
+            filename += f"_sx_{transform_metadata['sx']:.2f}_sy_{transform_metadata['sy']:.2f}"
+        elif transform_type == "shear":
+            filename += f"_shear_{transform_metadata['shear']:.2f}"
+
+        save_transformation(transformed, filename, output_dir)
         transformed_images.append(transformed)
 
 
@@ -449,6 +469,313 @@ def validate_and_clear_directory(directory: str, expected_count: int) -> bool:
     return True
 
 
+def validate_edge_detection_directory(edge_dir: str, subset_dir: str, expected_count: int = 168) -> bool:
+    """Validate that the edge detection directory matches the current subset images.
+
+    Inputs:
+        edge_dir (str): Path to the Edge Detection directory.
+        subset_dir (str): Path to the subset directory containing source PNGs.
+        expected_count (int): Expected number of PNG files.
+
+    Outputs:
+        bool: True if the edge directory is valid for the subset, False otherwise.
+    """
+    if not os.path.isdir(edge_dir):
+        return False
+    if count_png_images(edge_dir) != expected_count:
+        print(f"Edge Detection directory {edge_dir} has unexpected PNG count; clearing.")
+        clear_directory(edge_dir)
+        return False
+
+    source_images = sorted(
+        f for f in os.listdir(subset_dir)
+        if f.lower().endswith(".png")
+    )
+    if len(source_images) != expected_count // 4:
+        print(
+            f"Subset {subset_dir} expected {expected_count // 4} source images, "
+            f"but found {len(source_images)}."
+        )
+        return False
+
+    for source_image in source_images:
+        base_name, _ = os.path.splitext(source_image)
+        for suffix in ("sobel", "laplacian", "canny", "prewitt"):
+            expected_path = os.path.join(edge_dir, f"{base_name}_{suffix}.png")
+            if not os.path.isfile(expected_path):
+                print(f"Missing edge file for source image: {expected_path}")
+                clear_directory(edge_dir)
+                return False
+
+    return True
+
+
+def gather_transformation_images(transformation_dir: str, excluded_dirs: Tuple[str, ...]) -> list[str]:
+    """Gather all PNG image paths under a transformation directory while excluding specified subdirectories."""
+    image_paths: list[str] = []
+    for root, dirs, files in os.walk(transformation_dir):
+        dirs[:] = [d for d in dirs if d not in excluded_dirs]
+        for filename in files:
+            if filename.lower().endswith(".png"):
+                image_paths.append(os.path.join(root, filename))
+    return image_paths
+
+
+def create_random_subsets(transformation_dir: str, subset_names: Tuple[str, ...], expected_total: int) -> None:
+    """Create equal random subsets of transformation images."""
+    excluded_dirs = tuple(subset_names) + ("Plots",)
+    image_paths = gather_transformation_images(transformation_dir, excluded_dirs)
+    total_images = len(image_paths)
+    if total_images != expected_total:
+        raise RuntimeError(
+            f"Expected {expected_total} source images for subset creation, but found {total_images}."
+        )
+
+    random.shuffle(image_paths)
+    subset_size = total_images // len(subset_names)
+    for index, subset_name in enumerate(subset_names, start=1):
+        subset_dir = os.path.join(transformation_dir, subset_name)
+        os.makedirs(subset_dir, exist_ok=True)
+        clear_directory(subset_dir)
+        start = (index - 1) * subset_size
+        end = start + subset_size
+        for image_path in image_paths[start:end]:
+            shutil.copy2(image_path, os.path.join(subset_dir, os.path.basename(image_path)))
+    print(f"Created {len(subset_names)} random subsets in {transformation_dir}: {', '.join(subset_names)}")
+
+
+def verify_subset_counts(transformation_dir: str, subset_names: Tuple[str, ...], expected_count: int) -> bool:
+    """Verify that each subset contains the expected number of images."""
+    all_good = True
+    for subset_name in subset_names:
+        subset_dir = os.path.join(transformation_dir, subset_name)
+        count = count_png_images(subset_dir)
+        print(f"Subset '{subset_name}' contains {count} PNG images.")
+        if count != expected_count:
+            all_good = False
+    return all_good
+
+
+def normalize_edge_image(image: np.ndarray) -> np.ndarray:
+    """Normalize a floating-point edge image into an 8-bit grayscale image."""
+    image = np.absolute(image)
+    image = np.clip(image, 0, None)
+    max_val = image.max()
+    if max_val == 0:
+        return np.zeros(image.shape, dtype=np.uint8)
+    normalized = 255 * image / max_val
+    return normalized.astype(np.uint8)
+
+
+def perform_edge_detection_on_random_subset(
+    transformation_dir: str,
+    subset_names: Tuple[str, ...],
+    chosen_subset: str | None = None,
+) -> str:
+    """Perform edge detection on all images in a selected subset.
+
+    Inputs:
+        transformation_dir (str): Root transformations directory.
+        subset_names (Tuple[str, ...]): Available subset folder names.
+        chosen_subset (str | None): Specific subset name to process.
+            If omitted, a random subset is chosen.
+
+    Outputs:
+        str: Path to the generated edge detection directory.
+    """
+    if chosen_subset is None:
+        chosen_subset = random.choice(subset_names)
+
+    subset_dir = os.path.join(transformation_dir, chosen_subset)
+    image_paths = [
+        os.path.join(subset_dir, f)
+        for f in os.listdir(subset_dir)
+        if f.lower().endswith('.png')
+    ]
+    if not image_paths:
+        raise RuntimeError(f"No PNG images found in subset '{chosen_subset}' for edge detection.")
+
+    edge_dir = os.path.join(subset_dir, 'Edge Detection')
+    os.makedirs(edge_dir, exist_ok=True)
+
+    prewitt_x = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]], dtype=np.float32)
+    prewitt_y = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]], dtype=np.float32)
+
+    for image_path in image_paths:
+        image = load_image(image_path)
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        sobel_x = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+        sobel_y = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+        sobel = normalize_edge_image(np.hypot(sobel_x, sobel_y))
+
+        laplacian = normalize_edge_image(cv2.Laplacian(gray, cv2.CV_64F, ksize=3))
+        canny = cv2.Canny(gray, 100, 200)
+        prewitt = normalize_edge_image(np.hypot(
+            cv2.filter2D(gray, cv2.CV_64F, prewitt_x),
+            cv2.filter2D(gray, cv2.CV_64F, prewitt_y)
+        ))
+
+        base_name = os.path.splitext(os.path.basename(image_path))[0]
+        cv2.imwrite(os.path.join(edge_dir, f"{base_name}_sobel.png"), sobel)
+        cv2.imwrite(os.path.join(edge_dir, f"{base_name}_laplacian.png"), laplacian)
+        cv2.imwrite(os.path.join(edge_dir, f"{base_name}_canny.png"), canny)
+        cv2.imwrite(os.path.join(edge_dir, f"{base_name}_prewitt.png"), prewitt)
+
+    print(f"Performed edge detection on subset '{chosen_subset}' and saved results to {edge_dir}")
+    return edge_dir
+
+
+def describe_transformation_pipeline(base_name: str) -> str:
+    """Build a human-readable description of the transformation pipeline from the image filename."""
+    prefix = "HW1_IMG_CS898BA_"
+    remainder = base_name[len(prefix):] if base_name.startswith(prefix) else base_name
+    color_desc = "Original"
+    affine_desc = "No affine transform"
+    gaussian_desc = "No Gaussian blur"
+
+    affine_part = ""
+    if "_affine_" in remainder:
+        color_part, remainder = remainder.split("_affine_", 1)
+        affine_part = remainder
+    elif "_gaussian_sigma_" in remainder:
+        color_part, remainder = remainder.split("_gaussian_sigma_", 1)
+        affine_part = ""
+    else:
+        color_part = remainder
+        remainder = ""
+
+    color_map = {
+        "grayscale": "Grayscale",
+        "binary_otsu": "Binary (Otsu)",
+        "hsv": "HSV",
+        "lab": "LAB",
+        "hls": "HLS",
+        "hsv_equalized": "HSV equalized",
+        "hsv_equalized_bgr": "HSV equalized -> BGR",
+    }
+    color_desc = color_map.get(color_part, color_part.replace("_", " ").title())
+
+    if affine_part:
+        gaussian_split = affine_part.split("_gaussian_sigma_", 1)
+        affine_type_part = gaussian_split[0]
+        remainder = gaussian_split[1] if len(gaussian_split) > 1 else ""
+        parts = affine_type_part.split("_")
+        if parts[0] in {"rotation", "translation", "scale", "shear"}:
+            affine_type = parts[0].title()
+            if affine_type == "Rotation" and len(parts) >= 3 and parts[1] == "angle":
+                affine_desc = f"Rotation ({parts[2]}°)"
+            elif affine_type == "Translation" and "tx" in parts and "ty" in parts:
+                tx = parts[parts.index("tx") + 1]
+                ty = parts[parts.index("ty") + 1]
+                affine_desc = f"Translation (tx={tx}, ty={ty})"
+            elif affine_type == "Scale" and "sx" in parts and "sy" in parts:
+                sx = parts[parts.index("sx") + 1]
+                sy = parts[parts.index("sy") + 1]
+                affine_desc = f"Scale (sx={sx}, sy={sy})"
+            elif affine_type == "Shear" and len(parts) >= 2 and parts[1] == "shear":
+                affine_desc = f"Shear (s={parts[2]})"
+            else:
+                affine_desc = affine_type
+        else:
+            affine_desc = affine_type_part.replace("_", " ").title()
+    elif remainder.startswith("gaussian_sigma_"):
+        affine_desc = "No affine transform"
+        remainder = remainder
+
+    if "_gaussian_sigma_" in base_name:
+        gaussian_desc = f"Gaussian blur sigma {base_name.split('_gaussian_sigma_')[1]}"
+
+    return f"Original -> {color_desc} -> {affine_desc} -> {gaussian_desc}"
+
+
+def build_edge_detection_plots(subset_dir: str, edge_dir: str, plot_dir: str) -> list[str]:
+    """Build one comparison plot for each subset image and its edge-detected outputs.
+
+    Inputs:
+        subset_dir (str): Path to the selected subset directory.
+        edge_dir (str): Path to the corresponding Edge Detection directory.
+        plot_dir (str): Directory where generated plots will be saved.
+
+    Outputs:
+        list[str]: Paths to the generated plot image files.
+    """
+    if not os.path.isdir(edge_dir):
+        raise FileNotFoundError(f"Edge detection directory not found: {edge_dir}")
+
+    os.makedirs(plot_dir, exist_ok=True)
+    source_images = sorted(
+        f for f in os.listdir(subset_dir) if f.lower().endswith(".png")
+    )
+    if len(source_images) != 42:
+        raise RuntimeError(
+            f"Expected 42 source images in subset '{subset_dir}', but found {len(source_images)}."
+        )
+
+    plot_paths: list[str] = []
+    for index, source_image in enumerate(source_images, start=1):
+        base_name, _ = os.path.splitext(source_image)
+        source_path = os.path.join(subset_dir, source_image)
+        original_bgr = load_image(source_path)
+        original_rgb = cv2.cvtColor(original_bgr, cv2.COLOR_BGR2RGB)
+
+        edge_names = ["sobel", "laplacian", "canny", "prewitt"]
+        edge_images: list[np.ndarray] = []
+        for name in edge_names:
+            edge_path = os.path.join(edge_dir, f"{base_name}_{name}.png")
+            if not os.path.exists(edge_path):
+                raise FileNotFoundError(f"Expected edge image not found: {edge_path}")
+            edge_image = cv2.imread(edge_path, cv2.IMREAD_GRAYSCALE)
+            if edge_image is None:
+                raise FileNotFoundError(f"Unable to load edge image: {edge_path}")
+            edge_images.append(edge_image)
+
+        fig, axes = plt.subplots(1, 5, figsize=(24, 5))
+        titles = ["Original", "Sobel", "Laplacian", "Canny", "Prewitt"]
+        images = [original_rgb] + edge_images
+
+        for ax, img, title in zip(axes, images, titles):
+            if img.ndim == 2:
+                ax.imshow(img, cmap="gray", vmin=0, vmax=255)
+            else:
+                ax.imshow(img)
+            ax.set_title(title, fontsize=12, pad=10)
+            ax.axis("off")
+
+        process_description = describe_transformation_pipeline(base_name)
+        fig.suptitle(
+            f"Sample {index}: {base_name}\nOriginal and Edge Detection Transformations",
+            fontsize=18,
+            y=0.99,
+        )
+        fig.text(
+            0.5,
+            0.02,
+            process_description,
+            ha="center",
+            fontsize=11,
+            wrap=True,
+        )
+        plt.tight_layout(rect=[0, 0.05, 1, 0.92])
+
+        plot_path = os.path.join(plot_dir, f"{base_name}_edge_comparison.png")
+        fig.savefig(plot_path, dpi=150)
+        plt.close(fig)
+        plot_paths.append(plot_path)
+
+    print(f"Created {len(plot_paths)} edge comparison plots in {plot_dir}")
+    return plot_paths
+
+
+def select_random_plot_examples(plot_paths: list[str], sample_count: int = 6) -> list[str]:
+    """Select a random sample of plot images from a generated plot list."""
+    if len(plot_paths) < sample_count:
+        raise ValueError(
+            f"Cannot select {sample_count} plots from {len(plot_paths)} available plots."
+        )
+    return random.sample(plot_paths, sample_count)
+
+
 if __name__ == "__main__":
     DEFAULT_IMAGE_NAME = "HW1_IMG_CS898BA.png"
 
@@ -539,3 +866,23 @@ if __name__ == "__main__":
         print(f"Gaussian Blur already has the expected 147 files; skipping blur generation.")
 
     print(f"Saved Gaussian blurred images to: {gaussian_dir}")
+
+    subset_names = ("Subset 1", "Subset 2", "Subset 3", "Subset 4")
+    create_random_subsets(transformation_dir, subset_names, 168)
+    verify_subset_counts(transformation_dir, subset_names, 42)
+
+    chosen_subset = random.choice(subset_names)
+    subset_dir = os.path.join(transformation_dir, chosen_subset)
+    edge_dir = os.path.join(subset_dir, "Edge Detection")
+    edge_valid = validate_edge_detection_directory(edge_dir, 168)
+    if edge_valid:
+        print(f"Edge Detection directory already exists with 168 images; skipping edge detection for '{chosen_subset}'.")
+    else:
+        edge_dir = perform_edge_detection_on_random_subset(transformation_dir, subset_names, chosen_subset)
+
+    plot_dir = os.path.join(transformation_dir, "Plots")
+    plot_paths = build_edge_detection_plots(subset_dir, edge_dir, plot_dir)
+    selected_examples = select_random_plot_examples(plot_paths, 6)
+    print("Selected plot examples for README:")
+    for example_path in selected_examples:
+        print(f" - {example_path}")

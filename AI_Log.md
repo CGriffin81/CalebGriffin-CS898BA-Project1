@@ -4,51 +4,7 @@
 
 ## Entry 1: Establish AI log process for future prompts
 
-**Date & Time:** June 13, 2026 | 2:45 PM
-**AI Tool:** GitHub Copilot (Raptor mini Preview)
-**Prompt Type:** Process setup and logging
-
-### Full Prompt
-```
-CoPilot. We're on a journey here to analyze some image files. To facilitate this adventure, we need to utilize this AI_Log.md file to chronicle all of the prompts I give you and the feedback you provide. In AI_Log.md, each entry should include the full prompt, the date and time the prompt was issued, the AI tool used to enter the prompt, a synopsis of the result, and any relevant design or code changes affected by the result. You are not to generate or modify any code without my express direction. Let's get started.
-```
-
-### Result Synopsis
-- Confirmed AI_Log.md is present and can be used for prompt/result tracking
-- Recorded the process request with current metadata
-- No code changes made per instruction
-
-### Design/Code Changes
-- Added `imageanalysis.py` to compute per-channel image statistics
-- Implemented functions: `load_image`, `split_channels`, `compute_channel_stats`, `compute_mode`, `compute_skew`, `analyze_image_channels`, `format_channel_report`
-- Included optional SciPy support for `mode` and `skew`, with NumPy fallback
-
----
-
-## Entry 5: Write analysis functions into imageanalysis.py
-
-**Date & Time:** June 13, 2026 | 3:25 PM
-**AI Tool:** GitHub Copilot (Raptor mini Preview)
-**Prompt Type:** Code implementation
-
-### Full Prompt
-```
-Yes. Let's write the code into imageanalysis.py
-```
-
-### Result Synopsis
-- Wrote a new `imageanalysis.py` module with OpenCV and NumPy-based channel analysis
-- Included functions to load images, split BGR channels, compute statistics, mode, skew, and formatting
-- Added a CLI entry point for direct invocation with an image path
-
-### Design/Code Changes
-- Created/updated `imageanalysis.py` with analysis and reporting functionality
-
----
-
-## Entry 2: Request overview of OpenCV and documentation standards
-
-**Date & Time:** June 13, 2026 | 2:55 PM
+**Date & Time:** June 13, 2026 | 8:24 PM CST
 **AI Tool:** GitHub Copilot (Raptor mini Preview)
 **Prompt Type:** OpenCV overview and documentation guidance
 
@@ -68,31 +24,7 @@ The image file titled HW1_IMG_CS898BA.png will be the starting point. We will us
 
 ---
 
-## Entry 3: Request for per-channel image statistics methods
-
-**Date & Time:** June 13, 2026 | 3:10 PM
-**AI Tool:** GitHub Copilot (Raptor mini Preview)
-**Prompt Type:** Image statistics guidance
-
-### Full Prompt
-```
-I need basic image statistics for each channel in the original image before we start making any changes. I see that img.shape can give me dimensions. How can I find min, max, average, median, mode, skew, range, standard, deviation, and variance?
-```
-
-### Result Synopsis
-- Provided a per-channel statistics workflow for the original image
-- Recommended using OpenCV to load the image and NumPy to compute channel-wise min/max/mean/median/std/var/range
-- Explained that mode and skew are best computed with `scipy.stats` or custom code
-- Emphasized that all statistics should be derived from the original image data before modifications
-
-### Design/Code Changes
-- None. Provided guidance only.
-
----
-
-## Entry 4: Request for recommended channel analysis functions
-
-**Date & Time:** June 13, 2026 | 3:20 PM
+**Date & Time:** June 13, 2026 | 8:56 PM CST
 **AI Tool:** GitHub Copilot (Raptor mini Preview)
 **Prompt Type:** Function recommendations for channel statistics
 
@@ -106,15 +38,12 @@ Show me the functions you recommend to analyze the channels in the image I menti
 - Suggested using OpenCV for image I/O, NumPy for core statistics, and SciPy only if mode/skew is required
 - Emphasized that these functions should be descriptive, reusable, and return structured results without modifying the image
 
-
 ### Design/Code Changes
 - None. Logged prompt and response design guidance only.
 
 ---
 
-## Entry 6: Default image lookup added to imageanalysis.py
-
-**Date & Time:** June 13, 2026 | 3:30 PM
+**Date & Time:** June 13, 2026 | 9:28 PM CST
 **AI Tool:** GitHub Copilot (Raptor mini Preview)
 **Prompt Type:** Code update
 
@@ -132,29 +61,7 @@ Because we will always start with HW1_IMG_CS898BA.png, let's add locating that f
 
 ---
 
-## Entry 7: Move CLI imports to top-level in imageanalysis.py
-
-**Date & Time:** June 13, 2026 | 3:38 PM
-**AI Tool:** GitHub Copilot (Raptor mini Preview)
-**Prompt Type:** Code cleanup
-
-### Full Prompt
-```
-Put all imports at the start of the script.
-```
-
-### Result Synopsis
-- Updated `imageanalysis.py` to place `argparse` and `os` imports at the top of the module instead of inside `__main__`.
-- No behavioral changes; CLI still supports `--image_path` and the default lookup for `HW1_IMG_CS898BA.png`.
-
-### Design/Code Changes
-- Reorganized imports in `imageanalysis.py` for clarity and style.
-
----
-
-## Entry 8: Create README.md with setup, usage, and change log
-
-**Date & Time:** June 13, 2026 | 3:45 PM
+**Date & Time:** June 13, 2026 | 10:00 PM CST
 **AI Tool:** GitHub Copilot (Raptor mini Preview)
 **Prompt Type:** Documentation
 
@@ -172,29 +79,7 @@ Generate a Readme.md file with code explanations, setup and execution steps, and
 
 ---
 
-## Entry 9: Remove 'Next steps' section from README.md
-
-**Date & Time:** June 13, 2026 | 3:55 PM
-**AI Tool:** GitHub Copilot (Raptor mini Preview)
-**Prompt Type:** Documentation update
-
-### Full Prompt
-```
-Do not include a Next Steps section in the readme.
-```
-
-### Result Synopsis
-- Removed the "Next steps (suggested)" section from `README.md` at user's request.
-- Preserved the Changes and Contact sections.
-
-### Design/Code Changes
-- Edited `README.md` to remove planning suggestions.
-
----
-
-## Entry 10: Run analysis and capture results in README.md
-
-**Date & Time:** June 13, 2026 | 4:05 PM
+**Date & Time:** June 13, 2026 | 10:32 PM CST
 **AI Tool:** GitHub Copilot (Raptor mini Preview)
 **Prompt Type:** Execution & documentation
 
@@ -212,32 +97,7 @@ Run imageanalysis.py to include the relevant output in the Readme.
 
 ---
 
-## Entry 12: Strengthen affine transform uniqueness validation
-
-**Date & Time:** June 13, 2026 | 4:30 PM
-**AI Tool:** GitHub Copilot (Raptor mini Preview)
-**Prompt Type:** Code update and validation
-
-### Full Prompt
-```
-Append the exact log entry and finish the readme wording.
-```
-
-### Result Synopsis
-- Added pixel-wise affine output uniqueness validation to `imageanalysis.py`.
-- Updated `apply_affine_transformations()` to retry generated transforms when an affine result duplicates an earlier output.
-- Ensures the two affine output images are different both by transform type and by resulting pixel data.
-
-### Design/Code Changes
-- Added helper function `images_are_equal(image_a, image_b)` for exact image comparison.
-- Updated affine transformation logic to compare and reject duplicate outputs, with up to 10 retry attempts per transform.
-- Updated `README.md` to state that affine outputs are unique and that collisions are retried.
-
----
-
-## Entry 11: Request for grayscale/binary/color-space conversion functions
-
-**Date & Time:** June 13, 2026 | 4:20 PM
+**Date & Time:** June 13, 2026 | 11:04 PM CST
 **AI Tool:** GitHub Copilot (Raptor mini Preview)
 **Prompt Type:** Function recommendations
 
@@ -256,6 +116,117 @@ What functions can I use to convert the original image into greyscale, binary, a
 - Added `save_transformation()` helper to centralize image saving and enforce a consistent filename template.
 - Added affine transformation helpers and logic to process existing images in `Image Transformations`, saving outputs in `Image Transformations/Affine Transformations`.
 - Added explicit uniqueness verification that each image receives two different affine transform types.
+
+---
+
+**Date & Time:** June 13, 2026 | 11:20 PM CST
+**AI Tool:** GitHub Copilot (Raptor mini Preview)
+**Prompt Type:** Code implementation
+
+### Full Prompt
+```
+We're going to apply gaussian blur to each image in Image Transformations and Affine Transformations in sigma increments from .5 to 3.5, in steps of .5.
+```
+
+### Result Synopsis
+- Implemented Gaussian blur generation for all images in `Image Transformations` and `Affine Transformations`.
+- Applied blur at sigma values: 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5 (7 values per source image).
+- Generated 147 total blurred images (21 sources × 7 sigma values).
+
+### Design/Code Changes
+- Added `apply_gaussian_blur(image, sigma)` function to apply Gaussian blur using OpenCV.
+- Added `blur_images_in_directories(transformation_dir, affine_dir, output_dir, sigma_values)` to process all images.
+- Created `Image Transformations/Gaussian Blur` output directory with consistent naming: `{source}_gaussian_sigma_{sigma:.1f}.png`.
+- Added main script logic to generate blur pipeline on startup.
+
+---
+
+**Date & Time:** June 13, 2026 | 11:52 PM CST
+**AI Tool:** GitHub Copilot (Raptor mini Preview)
+**Prompt Type:** Code implementation
+
+### Full Prompt
+```
+We now need to create four equal subsets... randomly drafting the 168 images into four different directories inside Image Transformations: Subset 1, Subset 2, Subset 3, and Subset 4.
+```
+
+### Result Synopsis
+- Implemented random subset creation to divide all 168 transformation+blur images evenly.
+- Each subset contains 42 images (168 ÷ 4).
+- Images are randomly shuffled before distribution to ensure unbiased subsets.
+
+### Design/Code Changes
+- Added `gather_transformation_images(transformation_dir, excluded_dirs)` to collect images while excluding subdirectories.
+- Added `create_random_subsets(transformation_dir, subset_names, expected_total)` to perform random distribution.
+- Added `verify_subset_counts(transformation_dir, subset_names, expected_count)` to confirm each subset has 42 images.
+- Created four subset directories: `Subset 1`, `Subset 2`, `Subset 3`, `Subset 4` inside `Image Transformations`.
+
+---
+
+**Date & Time:** June 14, 2026 | 12:24 AM CST
+**AI Tool:** GitHub Copilot (Raptor mini Preview)
+**Prompt Type:** Code implementation
+
+### Full Prompt
+```
+We need to add validation to detect if the Edge Detection subdirectory already exists and has 168 images in it.
+```
+
+### Result Synopsis
+- Added specialized validation for the edge detection output directory.
+- Validates both count (168 images) and name matching with source images.
+- Clears directory if validation fails.
+
+### Design/Code Changes
+- Added `validate_edge_detection_directory(edge_dir, subset_dir, expected_count=168)` to check count and file name consistency.
+- Verifies that for each source image, all four edge variants exist.
+- Integrated into main script to skip edge detection if already complete.
+
+---
+
+**Date & Time:** June 14, 2026 | 12:54 AM CST
+**AI Tool:** GitHub Copilot (Raptor mini Preview)
+**Prompt Type:** Code update and documentation
+
+### Full Prompt
+```
+The plots need to contain the following information: What sample number it is. The transformation process in full: Original -> Color Space Change Type (Greyscale, binary, HSV, LAB, or HLS) -> The details of the Affine Transformation (What type of transformation, and the metrics of the transformation) -> The degree of Gaussian Blue applied. The plot should also include headings for each image selected. It should select a base image and its four edge transformations.
+```
+
+### Result Synopsis
+- Enhanced plot captions to include sample number, full transformation pipeline, and explicit headings.
+- Each subplot is clearly labeled: Original, Sobel, Laplacian, Canny, Prewitt.
+- Parsed affine metadata from filenames to display exact transformation parameters.
+
+### Design/Code Changes
+- Updated `generate_random_affine_matrix()` to return metadata (angle, tx/ty, sx/sy, shear values).
+- Updated `apply_affine_transformations()` to append metadata to filenames for later parsing.
+- Enhanced `describe_transformation_pipeline()` to extract and display affine parameters.
+- Updated `build_edge_detection_plots()` to include sample index, detailed pipeline description, and clear subplot titles.
+- Improved plot layout with larger figsize and refined spacing for readability.
+
+---
+
+**Date & Time:** June 14, 2026 | 1:24 AM CST
+**AI Tool:** GitHub Copilot (Raptor mini Preview)
+**Prompt Type:** Documentation update
+
+### Full Prompt
+```
+Excellent. Update the AI Log and the readme.
+```
+
+### Result Synopsis
+- Documented all plot generation features and improvements.
+- Added matplotlib dependency to README.
+- Included example plot filenames and transformation details.
+- Updated README function list with new plotting helpers.
+
+### Design/Code Changes
+- Added matplotlib to project dependencies in README.
+- Documented `Image Transformations/Plots` output directory.
+- Added six selected plot examples to README.
+- Created comprehensive AI Log entry documenting the feature.
 
 ---
 

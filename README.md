@@ -9,6 +9,7 @@
 - Python 3.8+
 - numpy
 - opencv-python
+- matplotlib
 - scipy (optional — used for `mode` and `skew`; the script falls back to NumPy when SciPy isn't installed)
 
 Install dependencies (recommended venv):
@@ -21,7 +22,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 pip install -U pip
-pip install numpy opencv-python
+pip install numpy opencv-python matplotlib
 # Optional
 pip install scipy
 ```
@@ -45,6 +46,9 @@ pip install scipy
   - `apply_affine_transformations(image, base_filename, output_dir)` — apply two distinct affine transforms (always different types) and save the results; retries on collisions and validates that no two affine output images are identical
   - `apply_gaussian_blur(image, sigma)` — apply Gaussian blur to an image using a sigma value
   - `blur_images_in_directories(transformation_dir, affine_dir, output_dir, sigma_values)` — blur every image in `Image Transformations` and `Affine Transformations`, saving results into `Image Transformations/Gaussian Blur`
+  - `build_edge_detection_plots(subset_dir, edge_dir, plot_dir)` — generate one comparison plot per subset image showing the original and four edge outputs
+  - `describe_transformation_pipeline(base_name)` — parse image filenames and describe the full pipeline of color conversion, affine transform, and blur
+  - `select_random_plot_examples(plot_paths, sample_count=6)` — choose six example plots for README inclusion
   - `save_transformation(image, filename_template, transformation_dir)` — save transformed images using a consistent naming template
   - `analyze_image_channels(image_path)` — orchestrator returning a dict of per-channel stats
   - `format_channel_report(channel_stats)` — returns a formatted text report
@@ -53,6 +57,7 @@ pip install scipy
     - `Image Transformations`
     - `Image Transformations/Affine Transformations`
     - `Image Transformations/Gaussian Blur`
+    - `Image Transformations/Plots`
 
 - [AI_Log.md](AI_Log.md) — project interaction log (prompts, responses, and design/code changes).
 
@@ -78,6 +83,9 @@ python imageanalysis.py -i path/to/image.png
 - Affine-transformed images are saved to `Image Transformations/Affine Transformations` with naming: `{source_name}_affine_{transform_type}.png` (e.g., `HW1_IMG_CS898BA_grayscale_affine_rotation.png`).
 - Gaussian-blurred images are saved to `Image Transformations/Gaussian Blur` with naming: `{source_name}_gaussian_sigma_{sigma}.png` where sigma ranges from 0.5 to 3.5 in 0.5 increments (e.g., `HW1_IMG_CS898BA_gaussian_sigma_1.5.png`). Every image from both the `Image Transformations` and `Affine Transformations` directories is blurred at each sigma value.
     - The differences in sigma values cause the image's pixels to be progressively more blurry. Higher sigma value relates to a further blur distance from each pixel, which causes the image to become more smooth, but to lose detail.
+- Edge comparison plots are saved to `Image Transformations/Plots`.
+    - Each plot shows the original source image plus Sobel, Laplacian, Canny, and Prewitt edge detections.
+    - Plot captions include sample number, original sample type, color space conversion, affine transform type and parameters, and Gaussian blur sigma.
 
 **Results**
 The following output was produced by running `imageanalysis.py` with the default image `HW1_IMG_CS898BA.png`:
@@ -121,6 +129,15 @@ Red channel:
   mode_count: 222718
   skew: 2.105449369974975
 ```
+
+**Plot selection examples**
+![Description](Image Transformations/Plots/HW1_IMG_CS898BA_grayscale_affine_scale_sx_0.84_sy_0.89_gaussian_sigma_1.0_edge_comparison.png)
+![Description](Image Transformations/Plots/HW1_IMG_CS898BA_lab_affine_scale_sx_0.80_sy_1.07_gaussian_sigma_1.0_edge_comparison.png)
+![Description](Image Transformations/Plots/HW1_IMG_CS898BA_hsv_equalized_bgr_affine_scale_sx_1.05_sy_1.12_gaussian_sigma_3.5_edge_comparison.png)
+![Description](Image Transformations/Plots/HW1_IMG_CS898BA_grayscale_gaussian_sigma_2.5_edge_comparison.png)
+![Description](Image Transformations/Plots/HW1_IMG_CS898BA_hsv_affine_translation_tx_-143.0_ty_-225.3_gaussian_sigma_1.5_edge_comparison.png)
+![Description](Image Transformations/Plots/HW1_IMG_CS898BA_grayscale_affine_scale_sx_0.84_sy_0.89_edge_comparison.png)
+
 
 **Docstring recommendations**
 - Each function in `imageanalysis.py` uses a docstring pattern including:
