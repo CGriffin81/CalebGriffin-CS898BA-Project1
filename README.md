@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This branch is for a new segmentation and base-truth analysis pass on `HW1_IMG_CS898BA.png`.
+This branch is for a new segmentation and base-truth analysis pass on `base_image.png`.
 
 The current roadmap is:
 - load and inspect the base image
@@ -49,6 +49,11 @@ Or provide an image path explicitly:
 ```bash
 python imagesegmentation.py --image_path path\to\image.png
 ```
+
+The current branch uses `base_image.png` as the renamed starter image.
+The script looks for that file in the working directory first and then falls back to the script directory if needed.
+Running the script saves the separated channel images into `Image_Transformations` as `base_image_blue_channel.png`, `base_image_green_channel.png`, and `base_image_red_channel.png`.
+It also applies histogram equalization to each channel, merges the equalized channels, and saves the result as `equalized_image.png` in the same folder.
 
 ## Notes
 
