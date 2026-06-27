@@ -54,6 +54,7 @@ The current branch uses `base_image.png` as the renamed starter image.
 The script looks for that file in the working directory first and then falls back to the script directory if needed.
 Running the script saves the separated channel images into `Image_Transformations` as `base_image_blue_channel.png`, `base_image_green_channel.png`, and `base_image_red_channel.png`.
 It also applies histogram equalization to each channel, merges the equalized channels, and saves the result as `equalized_image.png` in the same folder.
+The equalized image is then converted to grayscale and processed with Otsu and adaptive Gaussian thresholding. The script saves the grayscale image, binary mask, foreground image, and background image for each method in `Image_Transformations`.
 
 ## Notes
 

@@ -49,6 +49,29 @@ Let's move on. Write code to load the base image (base_image.png) and split it i
 
 ---
 
+## Entry 3: Resolve image paths from the working directory
+
+**Date & Time:** June 27, 2026 | 10:33 AM CST
+**AI Tool:** GitHub Copilot (GPT-5.4 mini)
+**Prompt Type:** Code implementation and documentation update
+
+### Full Prompt
+```
+Add code to find the image and paths from the working directory using os.
+```
+
+### Result Synopsis
+- Updated the script to resolve `base_image.png` from the working directory first, with a script-directory fallback.
+- Switched output path handling to `os.path` and `os.makedirs`.
+- Updated the README to describe the working-directory lookup behavior.
+
+### Design/Code Changes
+- Added `resolve_image_path()` to locate the base image using `os.getcwd()`.
+- Replaced `pathlib` usage with `os.path` and `os.makedirs` for channel output paths.
+- Added a README note explaining the working-directory search order.
+
+---
+
 ## Entry 4: Equalize the channel images and merge them back together
 
 **Date & Time:** June 27, 2026 | 10:42 AM CST
@@ -72,24 +95,25 @@ On the channel images, apply histogram equalization to normalize illumination an
 
 ---
 
-## Entry 3: Resolve image paths from the working directory
+## Entry 5: Threshold the equalized grayscale image
 
-**Date & Time:** June 27, 2026 | 10:33 AM CST
+**Date & Time:** June 27, 2026 | 11:08 AM CST
 **AI Tool:** GitHub Copilot (GPT-5.4 mini)
 **Prompt Type:** Code implementation and documentation update
 
 ### Full Prompt
 ```
-Add code to find the image and paths from the working directory using os.
+Take equalized_image and convert it to grayscale, then apply Otsu's automatic thresholding and adaptive thresholding using Gaussian window to the grayscale image to separate foreground from background. Save the binary masks, foreground images, and background images for both.
 ```
 
 ### Result Synopsis
-- Updated the script to resolve `base_image.png` from the working directory first, with a script-directory fallback.
-- Switched output path handling to `os.path` and `os.makedirs`.
-- Updated the README to describe the working-directory lookup behavior.
+- Added grayscale conversion for `equalized_image.png`.
+- Added Otsu and adaptive Gaussian thresholding on the grayscale image.
+- Saved the grayscale, binary mask, foreground, and background images for both thresholding methods.
 
 ### Design/Code Changes
-- Added `resolve_image_path()` to locate the base image using `os.getcwd()`.
-- Replaced `pathlib` usage with `os.path` and `os.makedirs` for channel output paths.
-- Added a README note explaining the working-directory search order.
+- Added `convert_to_grayscale()` to create a grayscale version of the equalized image.
+- Added `apply_otsu_threshold()` and `apply_adaptive_threshold()` for foreground/background separation.
+- Added `create_foreground_background()` and `save_threshold_outputs()` helpers to write the derived images.
+- Updated the README to document the new thresholding outputs.
 

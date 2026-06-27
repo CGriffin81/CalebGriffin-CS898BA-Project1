@@ -102,6 +102,51 @@ def save_equalized_image(equalized_channels: tuple[np.ndarray, np.ndarray, np.nd
     cv2.imwrite(output_path, equalized_image)
 
 
+def convert_to_grayscale(image: np.ndarray) -> np.ndarray:
+    """Convert a BGR image to grayscale."""
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+
+def create_foreground_background(gray_image: np.ndarray, binary_mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Create foreground and background images from a binary mask."""
+    foreground = cv2.bitwise_and(gray_image, gray_image, mask=binary_mask)
+    inverted_mask = cv2.bitwise_not(binary_mask)
+    background = cv2.bitwise_and(gray_image, gray_image, mask=inverted_mask)
+    return foreground, background
+
+
+def save_threshold_outputs(prefix: str, gray_image: np.ndarray, binary_mask: np.ndarray, foreground: np.ndarray, background: np.ndarray) -> None:
+    """Save grayscale, binary mask, foreground, and background images for a thresholding method."""
+    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    os.makedirs(transformations_dir, exist_ok=True)
+
+    cv2.imwrite(os.path.join(transformations_dir, f"{prefix}_grayscale.png"), gray_image)
+    cv2.imwrite(os.path.join(transformations_dir, f"{prefix}_mask.png"), binary_mask)
+    cv2.imwrite(os.path.join(transformations_dir, f"{prefix}_foreground.png"), foreground)
+    cv2.imwrite(os.path.join(transformations_dir, f"{prefix}_background.png"), background)
+
+
+def apply_otsu_threshold(gray_image: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Apply Otsu's automatic thresholding to a grayscale image."""
+    _, binary_mask = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    foreground, background = create_foreground_background(gray_image, binary_mask)
+    return binary_mask, foreground, background
+
+
+def apply_adaptive_threshold(gray_image: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Apply adaptive Gaussian thresholding to a grayscale image."""
+    binary_mask = cv2.adaptiveThreshold(
+        gray_image,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        11,
+        2,
+    )
+    foreground, background = create_foreground_background(gray_image, binary_mask)
+    return binary_mask, foreground, background
+
+
 def main() -> None:
     """Load the base image, split its channels, and save the channel images."""
     base_image_path = resolve_image_path(BASE_IMAGE_NAME)
@@ -110,8 +155,15 @@ def main() -> None:
     save_channel_images(os.path.splitext(os.path.basename(base_image_path))[0], channels)
     equalized_channels = equalize_color_channels(channels)
     save_equalized_image(equalized_channels)
+    equalized_image = cv2.merge(equalized_channels)
+    grayscale_image = convert_to_grayscale(equalized_image)
+    otsu_mask, otsu_foreground, otsu_background = apply_otsu_threshold(grayscale_image)
+    adaptive_mask, adaptive_foreground, adaptive_background = apply_adaptive_threshold(grayscale_image)
+    save_threshold_outputs("equalized_image_otsu", grayscale_image, otsu_mask, otsu_foreground, otsu_background)
+    save_threshold_outputs("equalized_image_adaptive", grayscale_image, adaptive_mask, adaptive_foreground, adaptive_background)
     print(f"Saved channel images for {BASE_IMAGE_NAME} in {os.path.join(os.getcwd(), 'Image_Transformations')}")
     print(f"Saved equalized merged image as equalized_image.png in {os.path.join(os.getcwd(), 'Image_Transformations')}")
+    print(f"Saved Otsu and adaptive threshold outputs in {os.path.join(os.getcwd(), 'Image_Transformations')}")
 
 
 if __name__ == "__main__":
