@@ -17,7 +17,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def resolve_image_path(image_name: str) -> str:
     """Find an image in the working directory, then fall back to the script directory."""
-    working_directory_path = os.path.join(os.getcwd(), image_name)
+    working_directory_path = os.path.join(SCRIPT_DIR, image_name)
     if os.path.exists(working_directory_path):
         return working_directory_path
 
@@ -71,7 +71,7 @@ def save_channel_images(base_image_name: str, channels: tuple[np.ndarray, np.nda
         base_image_name (str): Name of the source image without extension.
         channels (tuple[np.ndarray, np.ndarray, np.ndarray]): Blue, green, and red channels.
     """
-    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    transformations_dir = os.path.join(SCRIPT_DIR, "Image_Transformations")
     os.makedirs(transformations_dir, exist_ok=True)
 
     channel_names = ("blue", "green", "red")
@@ -94,7 +94,7 @@ def equalize_color_channels(channels: tuple[np.ndarray, np.ndarray, np.ndarray])
 
 def save_equalized_image(equalized_channels: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
     """Merge equalized channels and save the result as equalized_image.png."""
-    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    transformations_dir = os.path.join(SCRIPT_DIR, "Image_Transformations")
     os.makedirs(transformations_dir, exist_ok=True)
 
     equalized_image = cv2.merge(equalized_channels)
@@ -109,7 +109,7 @@ def convert_to_hsv(image: np.ndarray) -> np.ndarray:
 
 def save_hsv_image(hsv_image: np.ndarray) -> None:
     """Save the HSV image as hsv_image.png."""
-    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    transformations_dir = os.path.join(SCRIPT_DIR, "Image_Transformations")
     os.makedirs(transformations_dir, exist_ok=True)
 
     output_path = os.path.join(transformations_dir, "hsv_image.png")
@@ -131,7 +131,7 @@ def create_foreground_background(gray_image: np.ndarray, binary_mask: np.ndarray
 
 def save_threshold_outputs(prefix: str, gray_image: np.ndarray, binary_mask: np.ndarray, foreground: np.ndarray, background: np.ndarray) -> None:
     """Save grayscale, binary mask, foreground, and background images for a thresholding method."""
-    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    transformations_dir = os.path.join(SCRIPT_DIR, "Image_Transformations")
     os.makedirs(transformations_dir, exist_ok=True)
 
     cv2.imwrite(os.path.join(transformations_dir, f"{prefix}_grayscale.png"), gray_image)
@@ -171,7 +171,7 @@ def apply_kmeans_clustering(hsv_image: np.ndarray, cluster_count: int) -> np.nda
 
 def save_kmeans_outputs(hsv_image: np.ndarray, labels: np.ndarray, cluster_count: int) -> None:
     """Save binary masks and foregrounds for each K-means cluster."""
-    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    transformations_dir = os.path.join(SCRIPT_DIR, "Image_Transformations")
     os.makedirs(transformations_dir, exist_ok=True)
 
     height, width = hsv_image.shape[:2]
@@ -210,7 +210,7 @@ def compute_overlap_metrics(ground_truth_mask: np.ndarray, predicted_mask: np.nd
 
 def report_ground_truth_metrics() -> None:
     """Calculate and print IoU and Dice metrics against the manual ground truth mask."""
-    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    transformations_dir = os.path.join(SCRIPT_DIR, "Image_Transformations")
     ground_truth_path = os.path.join(transformations_dir, "ground_truth_mask.png")
     comparison_files = {
         "Adaptive foreground": "equalized_image_adaptive_foreground.png",
@@ -232,7 +232,7 @@ def generate_segmentation_comparison_plot() -> None:
     """Generate a comparison figure of the original image and the final
     segmentation masks."""
 
-    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    transformations_dir = os.path.join(SCRIPT_DIR, "Image_Transformations")
 
     image_files = [
         ("Original", resolve_image_path(BASE_IMAGE_NAME), False),
@@ -289,10 +289,10 @@ def main() -> None:
         labels = apply_kmeans_clustering(hsv_image, cluster_count)
         save_kmeans_outputs(hsv_image, labels, cluster_count)
     report_ground_truth_metrics()
-    print(f"Saved channel images for {BASE_IMAGE_NAME} in {os.path.join(os.getcwd(), 'Image_Transformations')}")
-    print(f"Saved equalized merged image as equalized_image.png in {os.path.join(os.getcwd(), 'Image_Transformations')}")
-    print(f"Saved Otsu and adaptive threshold outputs in {os.path.join(os.getcwd(), 'Image_Transformations')}")
-    print(f"Saved HSV conversion and K-means outputs in {os.path.join(os.getcwd(), 'Image_Transformations')}")
+    print(f"Saved channel images for {BASE_IMAGE_NAME} in {os.path.join(SCRIPT_DIR, 'Image_Transformations')}")
+    print(f"Saved equalized merged image as equalized_image.png in {os.path.join(SCRIPT_DIR, 'Image_Transformations')}")
+    print(f"Saved Otsu and adaptive threshold outputs in {os.path.join(SCRIPT_DIR, 'Image_Transformations')}")
+    print(f"Saved HSV conversion and K-means outputs in {os.path.join(SCRIPT_DIR, 'Image_Transformations')}")
     generate_segmentation_comparison_plot()
 
 if __name__ == "__main__":
