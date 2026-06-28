@@ -6,9 +6,9 @@ into the Image_Transformations directory.
 """
 
 import os
-
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 BASE_IMAGE_NAME = "base_image.png"
@@ -228,6 +228,46 @@ def report_ground_truth_metrics() -> None:
         iou, dice = compute_overlap_metrics(ground_truth_mask, predicted_mask)
         print(f"{label:<31} {iou:>12.4f} {dice:>8.4f}")
 
+def generate_segmentation_comparison_plot() -> None:
+    """Generate a comparison figure of the original image and the final
+    segmentation masks."""
+
+    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+
+    image_files = [
+        ("Original", resolve_image_path(BASE_IMAGE_NAME), False),
+        ("Equalized", os.path.join(transformations_dir, "equalized_image.png"), False),
+        ("Ground Truth", os.path.join(transformations_dir, "ground_truth_mask.png"), True),
+        ("Adaptive", os.path.join(transformations_dir, "equalized_image_adaptive_mask.png"), True),
+        ("Otsu", os.path.join(transformations_dir, "equalized_image_otsu_mask.png"), True),
+        ("K-Means (K=4)", os.path.join(transformations_dir, "hsv_image_k4_cluster4_mask.png"), True),
+    ]
+
+    figure, axes = plt.subplots(
+        1,
+        len(image_files),
+        figsize=(24, 5),
+        constrained_layout=True,
+    )
+
+    for axis, (title, filename, grayscale) in zip(axes, image_files):
+        if grayscale:
+            image = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+            axis.imshow(image, cmap="gray")
+        else:
+            image = cv2.imread(filename)
+            axis.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+
+        axis.set_title(title)
+        axis.axis("off")
+
+    output_path = os.path.join(
+        transformations_dir,
+        "segmentation_comparison.png",
+    )
+
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(figure)
 
 def main() -> None:
     """Load the base image, split its channels, and save the channel images."""
@@ -253,7 +293,7 @@ def main() -> None:
     print(f"Saved equalized merged image as equalized_image.png in {os.path.join(os.getcwd(), 'Image_Transformations')}")
     print(f"Saved Otsu and adaptive threshold outputs in {os.path.join(os.getcwd(), 'Image_Transformations')}")
     print(f"Saved HSV conversion and K-means outputs in {os.path.join(os.getcwd(), 'Image_Transformations')}")
-
+    generate_segmentation_comparison_plot()
 
 if __name__ == "__main__":
     main()

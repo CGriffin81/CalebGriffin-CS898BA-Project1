@@ -22,7 +22,6 @@ The current roadmap is:
 - numpy
 - opencv-python
 - matplotlib
-- scipy is optional and only needed for statistics helpers that use `mode` or `skew`
 
 ## Setup
 
@@ -78,11 +77,18 @@ The equalized image is also converted to HSV and saved as `hsv_image.png`, then 
 Using `ground_truth_mask.png` as the reference mask and treating nonzero pixels in the saved foreground images as predicted foreground, the overlap metrics are:
 
 | Result | IoU / Jaccard Index | Dice Coefficient |
-| --- | ---: | ---: |
 | Adaptive foreground | 0.0610 | 0.1150 |
 | Otsu foreground | 0.0365 | 0.0705 |
-| K-means `k=4` cluster 4 foreground | 0.0631 | 0.1187 |
+| K-means | 0.0631 | 0.1187 |
 
-The `k=4` cluster 4 foreground performed best on both metrics, with adaptive foreground close behind and Otsu trailing the other two.
+The K-means used `k=4` cluster 4 foreground and performed best on both metrics, with adaptive foreground close behind and Otsu trailing the other two.
 
 ## Ran out of CoPilot credits after making it write the metrics gathering into the script.
+
+## Plot
+
+The following figure compares the original image, the histogram-equalized image, the manually created ground-truth mask, and the three segmentation approaches evaluated in this project: Adaptive Thresholding, Otsu Thresholding, and HSV K-Means Clustering (K = 4).
+
+<p align="center">
+  <img src="Image_Transformations/segmentation_comparison.png" alt="Segmentation Comparison">
+</p>

@@ -4,29 +4,6 @@ This log documents all interactions for the Feature-Segmentation work on image s
 
 ---
 
-## Entry 8: Add metric collection to the script
-
-**Date & Time:** June 28, 2026 | 10:16 AM CST
-**AI Tool:** GitHub Copilot (GPT-5.4 mini)
-**Prompt Type:** Code implementation update
-
-### Full Prompt
-```
-It's great that you did that, but I want the procedure included in the imagesegmentation.py script. Add the code to collect these metrics in there, but do not make it add the results to readme.
-```
-
-### Result Synopsis
-- Added a script procedure to compute IoU/Jaccard and Dice metrics against `ground_truth_mask.png`.
-- Kept the metric collection inside `imagesegmentation.py` and limited the output to the console.
-- Left the README unchanged for this step.
-
-### Design/Code Changes
-- Added `load_binary_mask()`, `compute_overlap_metrics()`, and `report_ground_truth_metrics()` to `imagesegmentation.py`.
-- Integrated the metric reporting step into `main()` after the K-means outputs are generated.
-- Did not add any new README content for this step.
-
----
-
 ## Entry 1: Start the Feature-Segmentation branch log
 
 **Date & Time:** June 27, 2026 | 9:58 AM CST
@@ -185,3 +162,25 @@ Using the manually generated ground_truth_mask.png as the ground truth, calculat
 - No script changes were required for this measurement step.
 - Updated the README with a metrics table and a short interpretation of the results.
 
+---
+
+## Entry 8: Add metric collection to the script
+
+**Date & Time:** June 28, 2026 | 10:16 AM CST
+**AI Tool:** GitHub Copilot (GPT-5.4 mini)
+**Prompt Type:** Code implementation update
+
+### Full Prompt
+```
+It's great that you did that, but I want the procedure included in the imagesegmentation.py script. Add the code to collect these metrics in there, but do not make it add the results to readme.
+```
+
+### Result Synopsis
+- Added a script procedure to compute IoU/Jaccard and Dice metrics against `ground_truth_mask.png`.
+- Kept the metric collection inside `imagesegmentation.py` and limited the output to the console.
+- Left the README unchanged for this step.
+
+### Design/Code Changes
+- Added `load_binary_mask()`, `compute_overlap_metrics()`, and `report_ground_truth_metrics()` to `imagesegmentation.py`.
+- Integrated the metric reporting step into `main()` after the K-means outputs are generated.
+- Did not add any new README content for this step.
