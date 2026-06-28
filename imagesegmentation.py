@@ -102,6 +102,20 @@ def save_equalized_image(equalized_channels: tuple[np.ndarray, np.ndarray, np.nd
     cv2.imwrite(output_path, equalized_image)
 
 
+def convert_to_hsv(image: np.ndarray) -> np.ndarray:
+    """Convert a BGR image to HSV color space."""
+    return cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+
+def save_hsv_image(hsv_image: np.ndarray) -> None:
+    """Save the HSV image as hsv_image.png."""
+    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    os.makedirs(transformations_dir, exist_ok=True)
+
+    output_path = os.path.join(transformations_dir, "hsv_image.png")
+    cv2.imwrite(output_path, hsv_image)
+
+
 def convert_to_grayscale(image: np.ndarray) -> np.ndarray:
     """Convert a BGR image to grayscale."""
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -147,6 +161,32 @@ def apply_adaptive_threshold(gray_image: np.ndarray) -> tuple[np.ndarray, np.nda
     return binary_mask, foreground, background
 
 
+def apply_kmeans_clustering(hsv_image: np.ndarray, cluster_count: int) -> np.ndarray:
+    """Cluster HSV pixels with K-means and return the label map."""
+    pixel_values = hsv_image.reshape((-1, 3)).astype(np.float32)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
+    _, labels, _ = cv2.kmeans(pixel_values, cluster_count, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+    return labels.flatten()
+
+
+def save_kmeans_outputs(hsv_image: np.ndarray, labels: np.ndarray, cluster_count: int) -> None:
+    """Save binary masks and foregrounds for each K-means cluster."""
+    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    os.makedirs(transformations_dir, exist_ok=True)
+
+    height, width = hsv_image.shape[:2]
+    for cluster_index in range(cluster_count):
+        cluster_mask = np.where(labels == cluster_index, 255, 0).astype(np.uint8).reshape((height, width))
+        foreground_hsv = cv2.bitwise_and(hsv_image, hsv_image, mask=cluster_mask)
+        foreground_bgr = cv2.cvtColor(foreground_hsv, cv2.COLOR_HSV2BGR)
+
+        mask_output = os.path.join(transformations_dir, f"hsv_image_k{cluster_count}_cluster{cluster_index + 1}_mask.png")
+        foreground_output = os.path.join(transformations_dir, f"hsv_image_k{cluster_count}_cluster{cluster_index + 1}_foreground.png")
+
+        cv2.imwrite(mask_output, cluster_mask)
+        cv2.imwrite(foreground_output, foreground_bgr)
+
+
 def main() -> None:
     """Load the base image, split its channels, and save the channel images."""
     base_image_path = resolve_image_path(BASE_IMAGE_NAME)
@@ -161,9 +201,15 @@ def main() -> None:
     adaptive_mask, adaptive_foreground, adaptive_background = apply_adaptive_threshold(grayscale_image)
     save_threshold_outputs("equalized_image_otsu", grayscale_image, otsu_mask, otsu_foreground, otsu_background)
     save_threshold_outputs("equalized_image_adaptive", grayscale_image, adaptive_mask, adaptive_foreground, adaptive_background)
+    hsv_image = convert_to_hsv(equalized_image)
+    save_hsv_image(hsv_image)
+    for cluster_count in (3, 4, 5):
+        labels = apply_kmeans_clustering(hsv_image, cluster_count)
+        save_kmeans_outputs(hsv_image, labels, cluster_count)
     print(f"Saved channel images for {BASE_IMAGE_NAME} in {os.path.join(os.getcwd(), 'Image_Transformations')}")
     print(f"Saved equalized merged image as equalized_image.png in {os.path.join(os.getcwd(), 'Image_Transformations')}")
     print(f"Saved Otsu and adaptive threshold outputs in {os.path.join(os.getcwd(), 'Image_Transformations')}")
+    print(f"Saved HSV conversion and K-means outputs in {os.path.join(os.getcwd(), 'Image_Transformations')}")
 
 
 if __name__ == "__main__":

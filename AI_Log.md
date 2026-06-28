@@ -117,3 +117,26 @@ Take equalized_image and convert it to grayscale, then apply Otsu's automatic th
 - Added `create_foreground_background()` and `save_threshold_outputs()` helpers to write the derived images.
 - Updated the README to document the new thresholding outputs.
 
+---
+
+## Entry 6: Convert to HSV and apply K-means clustering
+
+**Date & Time:** June 28, 2026 | 9:33 AM CST
+**AI Tool:** GitHub Copilot (GPT-5.4 mini)
+**Prompt Type:** Code implementation and documentation update
+
+### Full Prompt
+```
+Use equalized_image and convert it to HSV color space. Save the output from the conversion as hsv_image. Apply K-means clustering to hsv_image using k= 3, 4, and 5. Save the binary masks and foregrounds.
+```
+
+### Result Synopsis
+- Converted `equalized_image.png` to HSV and saved the output as `hsv_image.png`.
+- Applied K-means clustering for `k=3`, `k=4`, and `k=5` on the HSV image.
+- Saved one binary mask and one foreground image for each cluster in each K-means run.
+
+### Design/Code Changes
+- Added `convert_to_hsv()` and `save_hsv_image()` to handle the HSV conversion output.
+- Added `apply_kmeans_clustering()` and `save_kmeans_outputs()` to segment the HSV image into cluster masks and foregrounds.
+- Updated the README to document the HSV conversion and K-means outputs.
+
