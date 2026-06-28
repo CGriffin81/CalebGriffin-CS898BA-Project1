@@ -61,3 +61,28 @@ The equalized image is also converted to HSV and saved as `hsv_image.png`, then 
 
 - Keep this README synchronized with the actual script behavior.
 - Add results, outputs, and segmentation-specific details after the next implementation pass.
+
+## Discussion
+- Otsu
+  - Did a pretty poor job of being able to identify the figure as being in the foreground, opting to assume that things bright and in the center of the image were meant to be identified as foreground objects.
+- Adaptive
+  - Also did a poor job of identifying the figure as being in the foreground. The resulting foreground image looks like it mostly brought brightness values in the image to a more normalized range of values, but if I were given the foreground image that the Adaptive technique provided, I wouldn't be able to tell that it is supposed to be identifying a foreground.
+- K-Means
+  - K-Means where k=4 did a pretty good job of identifying the figure as being in the foreground in cluster 4, with some minor noise in the back coming from the houses, because the colors were fairly similar. Before getting the K-Means code and results, I predicted this would be the case, because the color spaces are fairly well divided into four categories.
+- Color Normalization
+  - The edge detection from homework one was very shoddy and did not produce the results I was hoping for.
+  - Implementing color normalization on the image before performing edge detection made the methods used more fruitful, with K-means being the best at identifying the figure as being in the foreground.
+
+## Ground Truth Metrics
+
+Using `ground_truth_mask.png` as the reference mask and treating nonzero pixels in the saved foreground images as predicted foreground, the overlap metrics are:
+
+| Result | IoU / Jaccard Index | Dice Coefficient |
+| --- | ---: | ---: |
+| Adaptive foreground | 0.0610 | 0.1150 |
+| Otsu foreground | 0.0365 | 0.0705 |
+| K-means `k=4` cluster 4 foreground | 0.0631 | 0.1187 |
+
+The `k=4` cluster 4 foreground performed best on both metrics, with adaptive foreground close behind and Otsu trailing the other two.
+
+## Ran out of CoPilot credits after making it write the metrics gathering into the script.

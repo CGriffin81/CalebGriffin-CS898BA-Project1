@@ -187,6 +187,48 @@ def save_kmeans_outputs(hsv_image: np.ndarray, labels: np.ndarray, cluster_count
         cv2.imwrite(foreground_output, foreground_bgr)
 
 
+def load_binary_mask(mask_path: str) -> np.ndarray:
+    """Load an image as a binary mask where nonzero pixels are foreground."""
+    mask_image = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    if mask_image is None:
+        raise ValueError(f"Failed to load mask image: {mask_path}")
+
+    return (mask_image > 0).astype(np.uint8)
+
+
+def compute_overlap_metrics(ground_truth_mask: np.ndarray, predicted_mask: np.ndarray) -> tuple[float, float]:
+    """Compute IoU/Jaccard and Dice coefficients for two binary masks."""
+    intersection = float(np.logical_and(ground_truth_mask, predicted_mask).sum())
+    union = float(np.logical_or(ground_truth_mask, predicted_mask).sum())
+    ground_truth_sum = float(ground_truth_mask.sum())
+    predicted_sum = float(predicted_mask.sum())
+
+    iou = intersection / union if union else 0.0
+    dice = (2.0 * intersection) / (ground_truth_sum + predicted_sum) if (ground_truth_sum + predicted_sum) else 0.0
+    return iou, dice
+
+
+def report_ground_truth_metrics() -> None:
+    """Calculate and print IoU and Dice metrics against the manual ground truth mask."""
+    transformations_dir = os.path.join(os.getcwd(), "Image_Transformations")
+    ground_truth_path = os.path.join(transformations_dir, "ground_truth_mask.png")
+    comparison_files = {
+        "Adaptive foreground": "equalized_image_adaptive_foreground.png",
+        "Otsu foreground": "equalized_image_otsu_foreground.png",
+        "K-means k=4 cluster 4 foreground": "hsv_image_k4_cluster4_foreground.png",
+    }
+
+    ground_truth_mask = load_binary_mask(ground_truth_path)
+    print("Ground truth metrics against ground_truth_mask.png")
+    print("Result                           IoU / Jaccard   Dice")
+    print("--------------------------------------------------------")
+
+    for label, filename in comparison_files.items():
+        predicted_mask = load_binary_mask(os.path.join(transformations_dir, filename))
+        iou, dice = compute_overlap_metrics(ground_truth_mask, predicted_mask)
+        print(f"{label:<31} {iou:>12.4f} {dice:>8.4f}")
+
+
 def main() -> None:
     """Load the base image, split its channels, and save the channel images."""
     base_image_path = resolve_image_path(BASE_IMAGE_NAME)
@@ -206,6 +248,7 @@ def main() -> None:
     for cluster_count in (3, 4, 5):
         labels = apply_kmeans_clustering(hsv_image, cluster_count)
         save_kmeans_outputs(hsv_image, labels, cluster_count)
+    report_ground_truth_metrics()
     print(f"Saved channel images for {BASE_IMAGE_NAME} in {os.path.join(os.getcwd(), 'Image_Transformations')}")
     print(f"Saved equalized merged image as equalized_image.png in {os.path.join(os.getcwd(), 'Image_Transformations')}")
     print(f"Saved Otsu and adaptive threshold outputs in {os.path.join(os.getcwd(), 'Image_Transformations')}")
