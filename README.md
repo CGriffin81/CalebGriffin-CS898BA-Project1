@@ -35,6 +35,13 @@ From the project root, run:
 python -m src.train
 ```
 
+Implementation status:
+
+- PyTorch CNN
+- Stratified train / validation / test split
+- Train-only augmentation
+- Saved model, plots, and reports in `outputs/`
+
 Artifacts are written to `outputs/`:
 
 - `outputs/models/fish_cnn_best.pt`
