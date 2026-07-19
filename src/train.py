@@ -126,9 +126,20 @@ def compute_normalization_stats(train_images: np.ndarray) -> tuple[np.ndarray, n
 
 def apply_augmentation(image: np.ndarray, rng: np.random.Generator) -> np.ndarray:
     augmented = image.copy()
+
+    # Random horizontal flip
     if rng.random() < 0.5:
         augmented = np.flip(augmented, axis=1)
 
+    # Minor rotation: ±15 degrees
+    if rng.random() < 0.5:
+        angle = rng.uniform(-15.0, 15.0)
+        h, w = augmented.shape[:2]
+        center = (w / 2.0, h / 2.0)
+        matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+        augmented = cv2.warpAffine(augmented, matrix, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
+
+    # Brightness and contrast adjustment
     brightness = rng.uniform(0.9, 1.1)
     contrast = rng.uniform(0.9, 1.1)
     augmented = np.clip((augmented - 0.5) * contrast + 0.5, 0.0, 1.0)
@@ -455,7 +466,7 @@ def run_experiment(args: argparse.Namespace) -> None:
     class_weights = compute_baseline_class_weights(labels[train_indices], len(class_names))
     class_weights_tensor = torch.tensor(class_weights, dtype=torch.float32, device=device)
 
-    baseline_config = ModelConfig(3, len(class_names))
+    baseline_config = ModelConfig(3, len(class_names), image_size=args.image_size)
     final_model = create_model(baseline_config, device)
     criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
     optimizer = torch.optim.Adam(final_model.parameters(), lr=baseline_config.learning_rate, weight_decay=baseline_config.weight_decay)
@@ -512,7 +523,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train a PyTorch CNN on the fish dataset.")
     parser.add_argument("--data-dir", default=str(DEFAULT_DATA_DIR))
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR))
-    parser.add_argument("--image-size", type=int, default=64)
+    parser.add_argument("--image-size", type=int, default=128)
     parser.add_argument("--train-ratio", type=float, default=0.7)
     parser.add_argument("--val-ratio", type=float, default=0.15)
     parser.add_argument("--test-ratio", type=float, default=0.15)

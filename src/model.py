@@ -20,6 +20,7 @@ class ModelConfig:
     dropout: float = 0.5
     learning_rate: float = 0.001
     weight_decay: float = 0.0
+    image_size: int = 128  # spatial input size; used to compute flatten dim
 
 
 class FishCNN(nn.Module):
@@ -40,9 +41,13 @@ class FishCNN(nn.Module):
             nn.MaxPool2d(2),
         )
 
+        # Spatial size after three MaxPool2d(2) layers
+        spatial = config.image_size // 8
+        flatten_dim = config.conv3_filters * spatial * spatial
+
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(config.conv3_filters * 8 * 8, config.hidden_dim),
+            nn.Linear(flatten_dim, config.hidden_dim),
             nn.ReLU(inplace=True),
             nn.Dropout(config.dropout),
             nn.Linear(config.hidden_dim, config.num_classes),
