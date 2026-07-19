@@ -1,4 +1,4 @@
-Classification report
+Classification Report
 
 Class            Precision    Recall        F1   Support
 Bete                 0.800     0.828     0.814        29
@@ -9,3 +9,6 @@ Guppy                0.903     0.966     0.933        29
 Oscar                0.739     0.810     0.773        21
 
 Accuracy: 0.888
+
+Macro avg          0.877     0.870     0.872
+Weighted avg       0.893     0.888     0.889
