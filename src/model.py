@@ -12,13 +12,14 @@ from torch import nn
 class ModelConfig:
     input_channels: int
     num_classes: int
-    conv1_filters: int = 16
-    conv2_filters: int = 32
+    conv1_filters: int = 32
+    conv2_filters: int = 64
+    conv3_filters: int = 128
     hidden_dim: int = 128
     kernel_size: int = 3
-    dropout: float = 0.3
+    dropout: float = 0.5
     learning_rate: float = 0.001
-    weight_decay: float = 0.0001
+    weight_decay: float = 0.0
 
 
 class FishCNN(nn.Module):
@@ -29,19 +30,19 @@ class FishCNN(nn.Module):
 
         self.features = nn.Sequential(
             nn.Conv2d(config.input_channels, config.conv1_filters, kernel_size=config.kernel_size, padding=padding),
-            nn.BatchNorm2d(config.conv1_filters),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2),
             nn.Conv2d(config.conv1_filters, config.conv2_filters, kernel_size=config.kernel_size, padding=padding),
-            nn.BatchNorm2d(config.conv2_filters),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2),
-            nn.AdaptiveAvgPool2d((4, 4)),
+            nn.Conv2d(config.conv2_filters, config.conv3_filters, kernel_size=config.kernel_size, padding=padding),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2),
         )
 
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(config.conv2_filters * 4 * 4, config.hidden_dim),
+            nn.Linear(config.conv3_filters * 8 * 8, config.hidden_dim),
             nn.ReLU(inplace=True),
             nn.Dropout(config.dropout),
             nn.Linear(config.hidden_dim, config.num_classes),

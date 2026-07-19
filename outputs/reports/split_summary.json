@@ -18,18 +18,7 @@
     0.8033888936042786,
     1.039679765701294
   ],
-  "best_config": {
-    "input_channels": 3,
-    "num_classes": 6,
-    "conv1_filters": 16,
-    "conv2_filters": 32,
-    "hidden_dim": 128,
-    "kernel_size": 3,
-    "dropout": 0.3,
-    "learning_rate": 0.001,
-    "weight_decay": 0.0001
-  },
   "device": "cpu",
-  "test_accuracy": 0.7631578947368421,
-  "test_loss": 0.6869257814005801
+  "test_accuracy": 0.7894736842105263,
+  "test_loss": 0.6199167308054472
 }

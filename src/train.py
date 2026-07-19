@@ -113,6 +113,10 @@ def compute_class_weights(labels: np.ndarray, num_classes: int) -> np.ndarray:
     return weights
 
 
+def compute_baseline_class_weights(labels: np.ndarray, num_classes: int) -> np.ndarray:
+    return compute_class_weights(labels, num_classes)
+
+
 def compute_normalization_stats(train_images: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     mean = train_images.mean(axis=(0, 1, 2), keepdims=False).reshape(1, 1, -1)
     std = train_images.std(axis=(0, 1, 2), keepdims=False).reshape(1, 1, -1)
@@ -205,6 +209,26 @@ def plot_history(history: dict[str, list[float]], output_path: Path) -> None:
     axes[1].set_xlabel("Epoch")
     axes[1].legend()
 
+    figure.tight_layout()
+    figure.savefig(output_path, dpi=200)
+    plt.close(figure)
+
+
+def plot_metric_curve(
+    train_values: list[float],
+    val_values: list[float],
+    title: str,
+    ylabel: str,
+    output_path: Path,
+) -> None:
+    epochs = np.arange(1, len(train_values) + 1)
+    figure, axis = plt.subplots(figsize=(6, 4))
+    axis.plot(epochs, train_values, label=f"Train {ylabel.lower()}")
+    axis.plot(epochs, val_values, label=f"Val {ylabel.lower()}")
+    axis.set_title(title)
+    axis.set_xlabel("Epoch")
+    axis.set_ylabel(ylabel)
+    axis.legend()
     figure.tight_layout()
     figure.savefig(output_path, dpi=200)
     plt.close(figure)
@@ -345,6 +369,59 @@ def train_model(
     return history, best_state
 
 
+def save_baseline_artifacts(
+    model: FishCNN,
+    history: dict[str, list[float]],
+    output_dir: Path,
+    mean: np.ndarray,
+    std: np.ndarray,
+    class_names: list[str],
+    test_loss: float,
+    test_accuracy: float,
+    test_labels: np.ndarray,
+    test_predictions: np.ndarray,
+) -> None:
+    model_dir = output_dir / "models"
+    history_dir = output_dir / "history"
+    plot_dir = output_dir / "plots"
+    report_dir = output_dir / "reports"
+
+    for directory in (model_dir, history_dir, plot_dir, report_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+
+    model_path = model_dir / "baseline_cnn.pt"
+    torch.save(
+        {
+            "model_state_dict": model.state_dict(),
+            "config": model.config.__dict__,
+            "mean": mean.tolist(),
+            "std": std.tolist(),
+            "class_names": class_names,
+        },
+        model_path,
+    )
+
+    history_path = history_dir / "baseline_history.json"
+    history_payload = {
+        **history,
+        "test_loss": test_loss,
+        "test_accuracy": test_accuracy,
+    }
+    history_path.write_text(json.dumps(history_payload, indent=2), encoding="utf-8")
+
+    plot_metric_curve(history["train_loss"], history["val_loss"], "Baseline Loss", "Loss", plot_dir / "baseline_loss_curve.png")
+    plot_metric_curve(history["train_accuracy"], history["val_accuracy"], "Baseline Accuracy", "Accuracy", plot_dir / "baseline_accuracy_curve.png")
+
+    confusion, report = compute_metrics(test_labels, test_predictions, class_names)
+    (report_dir / "baseline_classification_report.txt").write_text(report, encoding="utf-8")
+    plot_confusion_matrix(confusion, class_names, plot_dir / "baseline_confusion_matrix.png")
+
+    print(f"Baseline model saved to: {model_path}")
+    print(f"Baseline history saved to: {history_path}")
+    print(f"Baseline plots saved to: {plot_dir}")
+    print(f"Baseline report saved to: {report_dir / 'baseline_classification_report.txt'}")
+
+
 def run_experiment(args: argparse.Namespace) -> None:
     set_seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
@@ -375,49 +452,13 @@ def run_experiment(args: argparse.Namespace) -> None:
         args.seed,
     )
 
-    class_weights = compute_class_weights(labels[train_indices], len(class_names))
+    class_weights = compute_baseline_class_weights(labels[train_indices], len(class_names))
     class_weights_tensor = torch.tensor(class_weights, dtype=torch.float32, device=device)
 
-    candidate_configs = [
-        ModelConfig(3, len(class_names), conv1_filters=16, conv2_filters=32, hidden_dim=128, learning_rate=0.001),
-        ModelConfig(3, len(class_names), conv1_filters=24, conv2_filters=48, hidden_dim=128, learning_rate=0.0007),
-        ModelConfig(3, len(class_names), conv1_filters=16, conv2_filters=32, hidden_dim=192, learning_rate=0.0007),
-    ]
-
-    tuning_results: list[dict[str, float]] = []
-    best_config = candidate_configs[0]
-    best_val_accuracy = -np.inf
-
-    for config in candidate_configs:
-        model = create_model(config, device)
-        criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
-        optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
-        history, _ = train_model(
-            model,
-            train_loader,
-            val_loader,
-            criterion,
-            optimizer,
-            device,
-            args.tune_epochs,
-        )
-        validation_accuracy = history["val_accuracy"][-1]
-        tuning_results.append(
-            {
-                "conv1_filters": float(config.conv1_filters),
-                "conv2_filters": float(config.conv2_filters),
-                "hidden_dim": float(config.hidden_dim),
-                "learning_rate": float(config.learning_rate),
-                "validation_accuracy": float(validation_accuracy),
-            }
-        )
-        if validation_accuracy > best_val_accuracy:
-            best_val_accuracy = validation_accuracy
-            best_config = config
-
-    final_model = create_model(best_config, device)
+    baseline_config = ModelConfig(3, len(class_names))
+    final_model = create_model(baseline_config, device)
     criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
-    optimizer = torch.optim.Adam(final_model.parameters(), lr=best_config.learning_rate, weight_decay=best_config.weight_decay)
+    optimizer = torch.optim.Adam(final_model.parameters(), lr=baseline_config.learning_rate, weight_decay=baseline_config.weight_decay)
     history, _ = train_model(
         final_model,
         train_loader,
@@ -429,24 +470,19 @@ def run_experiment(args: argparse.Namespace) -> None:
     )
 
     test_loss, test_accuracy, test_labels, test_predictions = evaluate(final_model, test_loader, criterion, device)
-    confusion, report = compute_metrics(test_labels, test_predictions, class_names)
-
-    model_path = model_dir / "fish_cnn_best.pt"
-    torch.save(
-        {
-            "model_state_dict": final_model.state_dict(),
-            "config": best_config.__dict__,
-            "mean": mean.tolist(),
-            "std": std.tolist(),
-            "class_names": class_names,
-        },
-        model_path,
+    save_baseline_artifacts(
+        final_model,
+        history,
+        output_dir,
+        mean,
+        std,
+        class_names,
+        test_loss,
+        test_accuracy,
+        test_labels,
+        test_predictions,
     )
-    plot_history(history, plot_dir / "training_curves.png")
-    plot_confusion_matrix(confusion, class_names, plot_dir / "confusion_matrix.png")
 
-    (report_dir / "classification_report.txt").write_text(report, encoding="utf-8")
-    (report_dir / "hyperparameter_search.json").write_text(json.dumps(tuning_results, indent=2), encoding="utf-8")
     (report_dir / "split_summary.json").write_text(
         json.dumps(
             {
@@ -455,7 +491,6 @@ def run_experiment(args: argparse.Namespace) -> None:
                 "val_size": int(len(val_indices)),
                 "test_size": int(len(test_indices)),
                 "class_weights": class_weights.tolist(),
-                "best_config": best_config.__dict__,
                 "device": str(device),
                 "test_accuracy": test_accuracy,
                 "test_loss": test_loss,
@@ -467,9 +502,8 @@ def run_experiment(args: argparse.Namespace) -> None:
 
     print("Training complete")
     print(f"Device: {device}")
-    print(f"Best validation accuracy: {best_val_accuracy:.3f}")
     print(f"Test accuracy: {test_accuracy:.3f}")
-    print(f"Model saved to: {model_path}")
+    print(f"Model saved to: {model_dir / 'baseline_cnn.pt'}")
     print(f"Reports saved to: {report_dir}")
     print(f"Plots saved to: {plot_dir}")
 
@@ -483,7 +517,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--val-ratio", type=float, default=0.15)
     parser.add_argument("--test-ratio", type=float, default=0.15)
     parser.add_argument("--epochs", type=int, default=12)
-    parser.add_argument("--tune-epochs", type=int, default=4)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--cpu", action="store_true", help="Force CPU execution even if CUDA is available.")
