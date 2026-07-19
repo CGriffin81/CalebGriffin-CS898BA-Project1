@@ -1,0 +1,7 @@
+{
+  "learning_rate": 0.001,
+  "batch_size": 32,
+  "dropout": 0.5,
+  "val_loss": 0.5633732456909982,
+  "val_accuracy": 0.8421052631578947
+}

@@ -1,0 +1,98 @@
+[
+  {
+    "experiment": 1,
+    "learning_rate": 0.01,
+    "batch_size": 32,
+    "dropout": 0.3,
+    "val_loss": 1.7888393590324803,
+    "val_accuracy": 0.20394736842105263
+  },
+  {
+    "experiment": 2,
+    "learning_rate": 0.01,
+    "batch_size": 32,
+    "dropout": 0.5,
+    "val_loss": 0.9737126137080946,
+    "val_accuracy": 0.7763157894736842
+  },
+  {
+    "experiment": 3,
+    "learning_rate": 0.01,
+    "batch_size": 64,
+    "dropout": 0.3,
+    "val_loss": 0.8271629433882864,
+    "val_accuracy": 0.7828947368421053
+  },
+  {
+    "experiment": 4,
+    "learning_rate": 0.01,
+    "batch_size": 64,
+    "dropout": 0.5,
+    "val_loss": 0.8415277819884451,
+    "val_accuracy": 0.7960526315789473
+  },
+  {
+    "experiment": 5,
+    "learning_rate": 0.001,
+    "batch_size": 32,
+    "dropout": 0.3,
+    "val_loss": 0.7543000422025982,
+    "val_accuracy": 0.8421052631578947
+  },
+  {
+    "experiment": 6,
+    "learning_rate": 0.001,
+    "batch_size": 32,
+    "dropout": 0.5,
+    "val_loss": 0.5633732456909982,
+    "val_accuracy": 0.8421052631578947
+  },
+  {
+    "experiment": 7,
+    "learning_rate": 0.001,
+    "batch_size": 64,
+    "dropout": 0.3,
+    "val_loss": 0.7666336611697548,
+    "val_accuracy": 0.8421052631578947
+  },
+  {
+    "experiment": 8,
+    "learning_rate": 0.001,
+    "batch_size": 64,
+    "dropout": 0.5,
+    "val_loss": 0.7517882271816856,
+    "val_accuracy": 0.8355263157894737
+  },
+  {
+    "experiment": 9,
+    "learning_rate": 0.0001,
+    "batch_size": 32,
+    "dropout": 0.3,
+    "val_loss": 0.8289456053784019,
+    "val_accuracy": 0.7828947368421053
+  },
+  {
+    "experiment": 10,
+    "learning_rate": 0.0001,
+    "batch_size": 32,
+    "dropout": 0.5,
+    "val_loss": 0.840625430408277,
+    "val_accuracy": 0.75
+  },
+  {
+    "experiment": 11,
+    "learning_rate": 0.0001,
+    "batch_size": 64,
+    "dropout": 0.3,
+    "val_loss": 0.8734999518645438,
+    "val_accuracy": 0.7236842105263158
+  },
+  {
+    "experiment": 12,
+    "learning_rate": 0.0001,
+    "batch_size": 64,
+    "dropout": 0.5,
+    "val_loss": 0.8766868867372212,
+    "val_accuracy": 0.7039473684210527
+  }
+]
