@@ -1,0 +1,23 @@
+[
+  {
+    "conv1_filters": 16.0,
+    "conv2_filters": 32.0,
+    "hidden_dim": 128.0,
+    "learning_rate": 0.001,
+    "validation_accuracy": 0.5592105263157895
+  },
+  {
+    "conv1_filters": 24.0,
+    "conv2_filters": 48.0,
+    "hidden_dim": 128.0,
+    "learning_rate": 0.0007,
+    "validation_accuracy": 0.5723684210526315
+  },
+  {
+    "conv1_filters": 16.0,
+    "conv2_filters": 32.0,
+    "hidden_dim": 192.0,
+    "learning_rate": 0.0007,
+    "validation_accuracy": 0.5592105263157895
+  }
+]

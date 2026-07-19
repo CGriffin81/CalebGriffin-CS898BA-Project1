@@ -1,0 +1,11 @@
+Classification report
+
+Class            Precision    Recall        F1   Support
+Bete                 0.619     0.448     0.520        29
+Cray                 0.263     0.833     0.400        12
+Discus               0.706     0.800     0.750        30
+Gold                 0.778     0.226     0.350        31
+Guppy                0.583     0.241     0.341        29
+Oscar                0.237     0.429     0.305        21
+
+Accuracy: 0.461
