@@ -1,0 +1,31 @@
+{
+  "classes": [
+    "Bete",
+    "Cray",
+    "Discus",
+    "Gold",
+    "Guppy",
+    "Oscar"
+  ],
+  "train_size": 712,
+  "val_size": 152,
+  "test_size": 152,
+  "class_weights": [
+    0.7797597646713257,
+    1.8937023878097534,
+    0.7521087527275085,
+    0.7313608527183533,
+    0.8033888936042786,
+    1.039679765701294
+  ],
+  "best_config": {
+    "input_channels": 3,
+    "num_classes": 6,
+    "conv1_filters": 8,
+    "conv2_filters": 16,
+    "hidden_dim": 96,
+    "kernel_size": 3,
+    "learning_rate": 0.0007,
+    "weight_decay": 0.0
+  }
+}
